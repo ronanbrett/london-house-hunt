@@ -33,13 +33,13 @@ running state, decisions, and blockers so work can resume without re-reading eve
 - **Phase 2 complete (free-API scope).** User decisions: schools **dropped** (no free Ofsted data),
   ONS **dropped** (low value), council tax via import ✅, **broadband → Stretch goal S1** (wanted,
   needs Ofcom bulk ingestion; revisit after Phase 4).
-- **Phase 3 nearly done.** T3.1 (LR comps), T3.4 (verdict), T3.5 (value API + UI) ✅ live-verified
-  (SW11 1LE £600k → "overpriced" vs £417.5k median of 6 nearby flats). T3.2 HPI = adjust-fn done but
-  source deferred (identity). T3.3 £/sqft = deferred (needs EPC key; currently whole-price comparison).
-- **Next task:** **Phase 4 — scoring** (user-prioritised). Metric registry + normalizers + score
-  engine + profiles + per-property score + compare. Metrics from what's live: £/value (value_score),
-  commute, distance-to-nearest-station, crime, flood, EPC, tenure (leasehold cliff), beds/size.
-  Also outstanding: T1.16 tags, X2 fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key).
+- **Phase 3 done** (value verdict; T3.2 HPI-source + T3.3 £/sqft deferred). **Phase 4 in progress** —
+  scoring engine + per-property score ✅ live-verified (SW11 1LE → 51, conf 0.85, 7 metrics).
+  Done: T4.1 metrics, T4.2 normalizers, T4.3 score engine + inputs, T4.5 per-property score + ScorePanel.
+- **Next task:** **T4.4 profiles** (profiles/profile_weights APIs + `settings/profiles.vue` weight
+  editor; default "Home to live in"; thread profileId into score) → **T4.6 compare** (`compare.post.ts`
+  cohort matrix + best-in-row, `compare.vue` + comparison store, absolute/relative). Then dashboard
+  score badges. Also: T1.16 tags, X2 fixtures, T3.2 HPI source, T3.3 £/sqft.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -197,6 +197,10 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   valueScore), valueFromSales + computeValue (persists comparables), value API + ValueVerdict UI.
   87 tests green, typecheck clean; live-verified (SW11 1LE £600k → overpriced vs £417.5k). Self-review
   2 cycles (cycle 2: clarified UI note = whole-price, not size-adjusted). T3.3 £/sqft deferred (EPC key).
+- 2026-06-16 — Phase 4 scoring engine: normalizers + 8-metric registry + scoreProperty (weighted,
+  missing-data renormalization, confidence) + gatherMetricInputs + score API + ScorePanel on detail
+  page. 99 tests green, typecheck clean; live-verified (SW11 1LE → 51, conf 0.85). Default weights for
+  now; T4.4 profiles + T4.6 compare next.
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 

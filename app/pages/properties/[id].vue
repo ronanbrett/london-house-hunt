@@ -40,12 +40,21 @@ const { data: enrichment, refresh: refreshEnrichment } = await useFetch<Record<s
   `/api/properties/${id}/enrichment`,
   { default: () => ({}) },
 )
+
+interface ScoreContribution { key: string; label: string; category: string; normalized: number; weight: number; missing: boolean }
+interface PropertyScore { total: number; confidence: number; contributions: ScoreContribution[] }
+const { data: score, refresh: refreshScore } = await useFetch<PropertyScore | null>(
+  `/api/properties/${id}/score`,
+  { default: () => null },
+)
+
 const enriching = ref(false)
 async function runEnrich() {
   enriching.value = true
   try {
     await $fetch(`/api/properties/${id}/enrich?force=true`, { method: 'POST' })
     await refreshEnrichment()
+    await refreshScore()
   } finally {
     enriching.value = false
   }
@@ -90,6 +99,7 @@ async function estimateValue() {
   valueLoading.value = true
   try {
     value.value = await $fetch<ValueResult>(`/api/properties/${id}/value`)
+    await refreshScore()
   } catch {
     value.value = null
   } finally {
@@ -156,6 +166,14 @@ function formatDate(ms?: number | null) {
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-2 space-y-6">
+        <!-- Score -->
+        <UCard>
+          <template #header>
+            <span class="flex items-center gap-2"><UIcon name="i-lucide-gauge" class="size-4" /> Score</span>
+          </template>
+          <ScorePanel :score="score" />
+        </UCard>
+
         <!-- Photos -->
         <div v-if="data?.photos?.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <img

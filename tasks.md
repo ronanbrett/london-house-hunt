@@ -142,16 +142,20 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 > nearest station** (from the `transit` enricher) plus crime, flood, EPC, £/sqft value, commute.
 > Per-property score (T4.5) is the headline deliverable; can be brought forward once enrichment lands.
 
-- [ ] **T4.1** Metric registry — `server/services/scoring/metrics.ts`: declarative metrics
-  (key, category, direction, extract, normalize strategy, defaultWeight, missingPolicy).
-- [ ] **T4.2** Normalizers — `server/services/scoring/normalize.ts`: linear/anchored, mapped,
-  threshold/banded, logistic, relative; leasehold `leaseFactor` cliff.
-- [ ] **T4.3** Score engine — `server/services/scoring/score.ts`: weighted blend, missing-data
-  renormalization, confidence, `contributions[]`. Unit-tested with synthetic bundles.
+- [x] **T4.1** Metric registry — `scoring/metrics.ts`: `MetricInput` + 8 declarative metrics
+  (value, commute, station, crime/safety, flood, epc, tenure, size) w/ category, defaultWeight,
+  missingPolicy, score fn. Tested.
+- [x] **T4.2** Normalizers — `scoring/normalize.ts`: `linearScore` (anchored, both directions),
+  `mappedScore`, `thresholdScore`, `leaseholdScore` (leaseFactor cliff). Tested.
+- [x] **T4.3** Score engine — `scoring/score.ts` `scoreProperty`: weighted blend, exclude/neutral/
+  penalize missing handling (renormalises), `confidence` = real-data/intended weight, `contributions[]`.
+  Tested (full / sparse / zero-weight). `scoring/inputs.ts` gathers from property+enrichment+comps (tested, in-mem db).
 - [ ] **T4.4** Profiles — `profiles`/`profile_weights` APIs; `settings/profiles.vue` weight
-  editor; ship a default "Home to live in" profile.
-- [ ] **T4.5** Per-property score — `server/api/properties/[id]/score.get.ts`; ScoreGauge +
-  ScoreBreakdown on the detail page.
+  editor; ship a default "Home to live in" profile. _Score currently uses metric defaultWeights;
+  profile selection/editing is next._
+- [x] **T4.5** Per-property score — `properties/[id]/score.get.ts` + `components/score/ScorePanel.vue`
+  (total + confidence + per-metric bars) on the detail page (refreshes after enrich/value). Tested +
+  live-verified (SW11 1LE: 51, confidence 0.85, 7 metrics).
 - [ ] **T4.6** Compare — `server/api/compare.post.ts` (cohort-aware matrix, best-in-row);
   `app/pages/compare.vue` + `app/stores/comparison.ts`; absolute/relative toggle.
 
