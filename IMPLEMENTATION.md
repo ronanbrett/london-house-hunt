@@ -30,13 +30,12 @@ running state, decisions, and blockers so work can resume without re-reading eve
   `[id]/enrichment.get`; detail-page "Area insights" with Stations/Crime/Flood/EPC panels.
   `npm test` = **63 across 22 files**; typecheck clean; live smoke (SW11 2QP → Clapham Junction 0.02mi,
   864 crimes, 16 flood areas, epc skipped) green.
-- **Remaining P2 is blocked/optional (researched):** schools (T2.8) has **no free Ofsted-by-location
-  API** (GIAS dropped Ofsted Sept 2024; paid only); broadband (T2.10b) is Ofcom bulk-only; council tax
-  (T2.10a) is **already captured from import** ✅; ONS (T2.9) is feasible via Nomis but low-value
-  (crime-rate denominator mismatch). Awaiting a steer on schools (pay / bulk-ingest / drop).
-- **Next task:** **Phase 3 — value/comparables** (T3.x: Land Registry SPARQL + HPI + EPC↔PPD join +
-  verdict), which feeds the **Phase 4 scoring** the user prioritised (include distance-to-station,
-  commute, crime, flood, EPC, £/sqft). Also outstanding: T1.16 tags, X2 real-portal fixtures.
+- **Phase 2 complete (free-API scope).** User decisions: schools **dropped** (no free Ofsted data),
+  ONS **dropped** (low value), council tax via import ✅, **broadband → Stretch goal S1** (wanted,
+  needs Ofcom bulk ingestion; revisit after Phase 4).
+- **Next task:** **Phase 3 — value/comparables** (T3.1 Land Registry SPARQL comps → T3.2 HPI adjust →
+  T3.3 EPC↔PPD £/sqft join → T3.4 verdict + value_score → T3.5 API+UI). Feeds **Phase 4 scoring**
+  (user-prioritised: distance-to-station, commute, crime, flood, EPC, £/sqft). Also: T1.16 tags, X2 fixtures.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
