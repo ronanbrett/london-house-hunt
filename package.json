@@ -1,0 +1,39 @@
+{
+  "name": "london-house-hunt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.3",
+    "@nuxt/ui": "^4.8.2",
+    "@pinia/nuxt": "^0.11.3",
+    "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.8.3",
+    "maplibre-gl": "^5.24.0",
+    "node-html-parser": "^7.1.0",
+    "nuxt": "^4.4.8",
+    "p-retry": "^8.0.0",
+    "pinia": "^3.0.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.112",
+    "@nuxt/test-utils": "^4.0.3",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8",
+    "vue-tsc": "^3.3.5"
+  }
+}
