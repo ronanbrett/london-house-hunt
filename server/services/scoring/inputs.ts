@@ -2,6 +2,8 @@ import { desc, eq } from 'drizzle-orm'
 import { type AppDatabase, useDb } from '../../db/client'
 import { comparables, properties } from '../../db/schema'
 import { getLatestEnrichment } from '../enrich'
+import { computeYield } from '../yield/estimate'
+import { getLatestRent } from '../yield/service'
 import type { MetricInput } from './metrics'
 
 /** Assemble the flat metric inputs for a property from its row + latest enrichment + latest comps. */
@@ -26,6 +28,17 @@ export async function gatherMetricInputs(
   const flood = enr.flood?.derived as { areaCount?: number } | undefined
   const epc = enr.epc?.derived as { current?: string } | undefined
 
+  const monthlyRent = await getLatestRent(propertyId, db)
+  const netYieldPct =
+    monthlyRent && prop.price
+      ? computeYield({
+          price: prop.price,
+          monthlyRent,
+          serviceChargeAnnual: prop.serviceChargeAnnual,
+          groundRentAnnual: prop.groundRentAnnual,
+        }).netYield
+      : null
+
   return {
     price: prop.price,
     beds: prop.beds,
@@ -38,5 +51,6 @@ export async function gatherMetricInputs(
     crimeTotal: police?.total ?? null,
     floodAreaCount: flood?.areaCount ?? null,
     valueDeltaPct: comp?.deltaPct ?? null,
+    netYieldPct,
   }
 }

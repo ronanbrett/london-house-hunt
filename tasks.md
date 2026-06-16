@@ -164,11 +164,17 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 
 ## Phase 5 — Investment / yield  _(optional)_
 
-- [ ] **T5.1** Rent estimate — `server/services/yield/estimate.ts`: VOA/ONS PRMS by beds+area →
-  LHA floor → user override; store `rent_estimates` with source.
-- [ ] **T5.2** Yield calc — gross + net (voids, mgmt, maintenance, service charge, ground rent).
-- [ ] **T5.3** Growth + score — HPI CAGR context; `investment_score`; "Buy-to-let" profile.
-- [ ] **T5.4** Yield API + UI — `server/api/yield/[id].get.ts` + detail-page panel.
+- [x] **T5.1** Rent estimate — **user-entered** (no free per-address rent API; VOA/ONS are bulk
+  datasets, like broadband). Stored in `rent_estimates` (source `user`) via `yield/service.ts`.
+  _VOA/ONS bulk anchor = future enhancement._
+- [x] **T5.2** Yield calc — `yield/estimate.ts` `computeYield`: gross + net (voids 5%, mgmt 10% if
+  managed, maintenance 1%, service charge + ground rent from listing). Pure + tested + live-verified
+  (£500k @ £2.2k/mo → 5.3% gross / 3.6% net).
+- [x] **T5.3** Investment score — `investmentScore(netYield)` 0–100; wired as an `investment` metric
+  (defaultWeight **0** — off for home-buyers, raise it for buy-to-let). _HPI CAGR growth context +
+  separate named "Buy-to-let" profile deferred (HPI source / multi-profile)._
+- [x] **T5.4** Yield API + UI — `properties/[id]/yield` GET/POST + `components/yield/YieldPanel.vue`
+  (rent input → gross/net + cost breakdown) on the detail page. Tested + live-verified.
 
 ## Phase 6 — Polish  _(optional)_
 

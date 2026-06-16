@@ -1,4 +1,5 @@
 import { valueScore } from '../value/verdict'
+import { investmentScore } from '../yield/estimate'
 import { type Band, leaseholdScore, linearScore, mappedScore, thresholdScore } from './normalize'
 
 /** Flat inputs the metrics read (assembled in inputs.ts from property + enrichment + comparables). */
@@ -14,6 +15,7 @@ export interface MetricInput {
   crimeTotal?: number | null
   floodAreaCount?: number | null
   valueDeltaPct?: number | null
+  netYieldPct?: number | null
 }
 
 export type MissingPolicy = 'exclude' | 'neutral' | 'penalize'
@@ -105,5 +107,13 @@ export const METRICS: MetricDef[] = [
     defaultWeight: 6,
     missingPolicy: 'exclude',
     score: (i) => (i.floorAreaSqft == null ? null : linearScore(i.floorAreaSqft, 1200, 400)),
+  },
+  {
+    key: 'investment',
+    label: 'Investment (yield)',
+    category: 'investment',
+    defaultWeight: 0, // off for "home to live in"; raise it in the weight editor for buy-to-let
+    missingPolicy: 'exclude',
+    score: (i) => (i.netYieldPct == null ? null : investmentScore(i.netYieldPct)),
   },
 ]

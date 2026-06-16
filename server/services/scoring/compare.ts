@@ -58,7 +58,9 @@ export async function compareProperties(
     })
   }
 
-  const matrixRows: CompareRow[] = METRICS.map((m) => {
+  // Only show metrics that actually count (weight > 0) — keeps off-by-default metrics out of the grid.
+  const activeMetrics = METRICS.filter((m) => (weights[m.key] ?? m.defaultWeight) > 0)
+  const matrixRows: CompareRow[] = activeMetrics.map((m) => {
     const cells: CompareCell[] = ordered.map((p) => {
       const c = contributionsByProp.get(p.id)?.get(m.key)
       return { id: p.id, value: c && !c.missing ? c.normalized : null }

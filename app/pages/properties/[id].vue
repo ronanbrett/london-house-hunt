@@ -214,6 +214,14 @@ function formatDate(ms?: number | null) {
           <ValueVerdict :result="value" :loading="valueLoading" />
         </UCard>
 
+        <!-- Yield (investment) -->
+        <UCard>
+          <template #header>
+            <span class="flex items-center gap-2"><UIcon name="i-lucide-trending-up" class="size-4" /> Yield (investment)</span>
+          </template>
+          <YieldPanel :property-id="id" />
+        </UCard>
+
         <!-- Description -->
         <UCard v-if="property.description">
           <template #header>Description</template>

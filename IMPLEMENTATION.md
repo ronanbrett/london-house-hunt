@@ -35,13 +35,12 @@ running state, decisions, and blockers so work can resume without re-reading eve
   needs Ofcom bulk ingestion; revisit after Phase 4).
 - **Phase 3 done** (value verdict; T3.2 HPI-source + T3.3 £/sqft deferred). **Phase 4 in progress** —
   scoring engine + per-property score ✅ live-verified (SW11 1LE → 51, conf 0.85, 7 metrics).
-- **Phase 4 COMPLETE** (T4.1–T4.6): scoring engine, per-property score, compare matrix, and the
-  weight editor (`/settings/profiles`) — score + compare use the saved "Home to live in" weights.
-  All live-verified.
-- **Next task (optional phases / polish):** dashboard score badges; **Phase 5** investment/yield
-  (optional); **Phase 6** polish (export compare, score-history, bulk re-enrich, auth seam).
-  Outstanding deferred: T1.16 tags, X2 real-portal fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key),
-  Stretch S1 broadband.
+- **Phases 0–5 COMPLETE.** Import (3 ways) → enrichment (stations/commute/crime/flood/EPC) → value
+  verdict → scoring + compare + weight editor → **investment/yield** (rent-in → gross/net yield +
+  `investment` metric, off by default). All live-verified.
+- **Next task (optional polish — Phase 6):** dashboard score badges; export comparison; score-history
+  charts; bulk re-enrich; auth seam for hosting. Outstanding deferred: T1.16 tags, X2 real-portal
+  fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key), Stretch S1 broadband, HPI CAGR growth context.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -209,6 +208,11 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
 - 2026-06-16 — T4.4 profiles/weights: profiles repo + /api/metrics + /api/profile/weights GET/PUT +
   settings/profiles.vue slider editor; score + compare consume saved weights. 107 tests green,
   typecheck clean; live-verified (value-only weighting → score 78). **Phase 4 complete.**
+- 2026-06-16 — Phase 5 investment/yield: computeYield + investmentScore (pure), yield/service +
+  yield GET/POST + YieldPanel; rent is user-entered (no free rent API). `investment` metric added to
+  registry at weight 0 (buy-to-let opt-in). 114 tests green, typecheck clean; live-verified (£500k @
+  £2.2k/mo → 5.3%/3.6%; investment-weighted score = 37). Self-review caught a non-awaited useFetch in
+  YieldPanel (fixed → await). **Phases 0–5 complete.**
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 
