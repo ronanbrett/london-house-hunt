@@ -4,6 +4,7 @@ const links = [
   { label: 'Add property', icon: 'i-lucide-plus', to: '/import' },
   { label: 'Compare', icon: 'i-lucide-columns-3', to: '/compare' },
   { label: 'Destinations', icon: 'i-lucide-map-pin', to: '/settings/destinations' },
+  { label: 'Weights', icon: 'i-lucide-sliders-horizontal', to: '/settings/profiles' },
 ]
 </script>
 

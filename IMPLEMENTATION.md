@@ -35,12 +35,13 @@ running state, decisions, and blockers so work can resume without re-reading eve
   needs Ofcom bulk ingestion; revisit after Phase 4).
 - **Phase 3 done** (value verdict; T3.2 HPI-source + T3.3 £/sqft deferred). **Phase 4 in progress** —
   scoring engine + per-property score ✅ live-verified (SW11 1LE → 51, conf 0.85, 7 metrics).
-  Done: T4.1 metrics, T4.2 normalizers, T4.3 score engine + inputs, T4.5 per-property score + ScorePanel,
-  **T4.6 compare** (matrix + best-in-row + absolute/relative; live-verified).
-- **Next task:** **T4.4 profiles** — last Phase 4 piece: profiles/profile_weights APIs +
-  `settings/profiles.vue` weight editor + default "Home to live in" + thread `profileId` into the
-  score & compare endpoints (they currently use metric default weights). Then dashboard score badges.
-  Also outstanding: T1.16 tags, X2 fixtures, T3.2 HPI source, T3.3 £/sqft.
+- **Phase 4 COMPLETE** (T4.1–T4.6): scoring engine, per-property score, compare matrix, and the
+  weight editor (`/settings/profiles`) — score + compare use the saved "Home to live in" weights.
+  All live-verified.
+- **Next task (optional phases / polish):** dashboard score badges; **Phase 5** investment/yield
+  (optional); **Phase 6** polish (export compare, score-history, bulk re-enrich, auth seam).
+  Outstanding deferred: T1.16 tags, X2 real-portal fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key),
+  Stretch S1 broadband.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -205,6 +206,9 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
 - 2026-06-16 — T4.6 compare: compareProperties (metric×property matrix, best-in-row) + compare API +
   comparison Pinia store + compare page (selector, absolute/relative toggle). 103 tests green,
   typecheck clean; live-verified (house 51 vs flat 31, correct winners). Only T4.4 profiles left in P4.
+- 2026-06-16 — T4.4 profiles/weights: profiles repo + /api/metrics + /api/profile/weights GET/PUT +
+  settings/profiles.vue slider editor; score + compare consume saved weights. 107 tests green,
+  typecheck clean; live-verified (value-only weighting → score 78). **Phase 4 complete.**
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 

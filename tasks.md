@@ -150,9 +150,10 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 - [x] **T4.3** Score engine — `scoring/score.ts` `scoreProperty`: weighted blend, exclude/neutral/
   penalize missing handling (renormalises), `confidence` = real-data/intended weight, `contributions[]`.
   Tested (full / sparse / zero-weight). `scoring/inputs.ts` gathers from property+enrichment+comps (tested, in-mem db).
-- [ ] **T4.4** Profiles — `profiles`/`profile_weights` APIs; `settings/profiles.vue` weight
-  editor; ship a default "Home to live in" profile. _Score currently uses metric defaultWeights;
-  profile selection/editing is next._
+- [x] **T4.4** Profiles/weights — `scoring/profiles.ts` (ensureDefaultProfile, getEffectiveWeights,
+  setDefaultWeights) + `/api/metrics`, `/api/profile/weights` GET/PUT; `settings/profiles.vue` slider
+  editor (default "Home to live in"). Score + compare now use the saved weights. Tested +
+  live-verified (value-only weighting → score 78). _Multiple named profiles = future nicety._
 - [x] **T4.5** Per-property score — `properties/[id]/score.get.ts` + `components/score/ScorePanel.vue`
   (total + confidence + per-metric bars) on the detail page (refreshes after enrich/value). Tested +
   live-verified (SW11 1LE: 51, confidence 0.85, 7 metrics).
