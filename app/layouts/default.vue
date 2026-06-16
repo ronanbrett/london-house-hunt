@@ -3,7 +3,7 @@ const links = [
   { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/' },
   { label: 'Add property', icon: 'i-lucide-plus', to: '/import' },
   { label: 'Compare', icon: 'i-lucide-columns-3', to: '/compare' },
-  { label: 'Settings', icon: 'i-lucide-settings', to: '/settings/profiles' },
+  { label: 'Destinations', icon: 'i-lucide-map-pin', to: '/settings/destinations' },
 ]
 </script>
 

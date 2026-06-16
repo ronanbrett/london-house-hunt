@@ -186,6 +186,7 @@ function formatDate(ms?: number | null) {
           </p>
         </UCard>
         <EnrichmentStationsPanel :entry="enrichment?.transit" />
+        <EnrichmentCommutePanel :entry="enrichment?.tfl" />
         <EnrichmentCrimePanel :entry="enrichment?.police" />
         <EnrichmentFloodPanel :entry="enrichment?.flood" />
         <EnrichmentEpcPanel :entry="enrichment?.epc" />

@@ -99,14 +99,16 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
 - [x] **T2.6** EPC — `enrich/epc.ts` (epc.opendatacommunities.org; `matchEpcRow` address heuristic →
   rating + floor area + UPRN). **Key-gated** (skips cleanly when no key, so no false `no_match`
   cached). Tested. Address matching refined in Phase 3 (T3.3); EPC→property backfill deferred to P3.
-- [ ] **T2.7** Commute + destinations — `enrich/tfl.ts` (TfL journey planner); `destinations` CRUD +
-  `settings/destinations.vue`; importance-weighted blend. **Needs TfL key.** TODO.
+- [x] **T2.7** Commute + destinations — `enrich/tfl.ts` (TfL Journey planner, **keyless**;
+  `blendCommute` importance-weighted); destinations repo + CRUD routes; `settings/destinations.vue`
+  (geocodes postcode on add); CommutePanel. Destinations passed via `EnrichContext`. Tested + verified
+  live (Clapham→Liverpool St = 38 min).
 - [ ] **T2.8** Schools — `enrich/schools.ts` (nearest Ofsted-rated, distance-weighted). TODO.
 - [ ] **T2.9** ONS area stats — `enrich/ons.ts` (population for crime-rate, tenure mix, area trend). TODO.
 - [ ] **T2.10** Council tax + broadband — `councilTax.ts` (VOA band), `broadband.ts` (Ofcom). TODO.
-- [~] **T2.11** Enrichment panels UI — `enrichment/{EnrichmentStatus,StationsPanel,CrimePanel,
-  FloodPanel,EpcPanel}.vue` + detail-page "Area insights" with Refresh (force) + freshness badges.
-  DONE for transit/crime/flood/EPC; schools/ONS/council-tax/broadband panels land with their enrichers.
+- [~] **T2.11** Enrichment panels UI — `enrichment/{EnrichmentStatus,StationsPanel,CommutePanel,
+  CrimePanel,FloodPanel,EpcPanel}.vue` + detail-page "Area insights" with Refresh (force) + freshness
+  badges. DONE for transit/commute/crime/flood/EPC; schools/ONS/council-tax/broadband land with theirs.
 
 ## Phase 3 — Value / comparables
 

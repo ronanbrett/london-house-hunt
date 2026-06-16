@@ -21,18 +21,19 @@ running state, decisions, and blockers so work can resume without re-reading eve
 
 ## Current state  _(update at the end of every working session)_
 
-- **Phase:** 0 ✅, 1 ✅. **Phase 2 in progress** — cache + orchestrator + crime + flood + **stations
-  (TfL)** + **EPC (key-gated)** done & live-verified.
+- **Phase:** 0 ✅, 1 ✅. **Phase 2 in progress** — cache + orchestrator + crime + flood + **stations** +
+  **commute/destinations** + **EPC (key-gated)** done & live-verified. Remaining: schools/ONS/council-
+  tax/broadband (dataset-based, no clean free API).
 - **Done (P2 so far):** `cache/snapshot.ts` getOrFetch + `ttl.ts`; `enrich/http.ts` (rateLimit +
   fetchJson); `enrich/types.ts` + `enrich/index.ts` (registry, `enrichProperty`, `getLatestEnrichment`);
   enrichers: **police, flood, stations(transit), epc**; routes `[id]/enrich.post` (Refresh forces) +
   `[id]/enrichment.get`; detail-page "Area insights" with Stations/Crime/Flood/EPC panels.
   `npm test` = **63 across 22 files**; typecheck clean; live smoke (SW11 2QP → Clapham Junction 0.02mi,
   864 crimes, 16 flood areas, epc skipped) green.
-- **Next task:** **T2.7 TfL commute + destinations** (key-gated) → **T2.8 schools** → **T2.9 ONS**
-  (population for crime-rate-per-1000) → **T2.10 council tax + broadband**. NOTE: schools/ONS/council-
-  tax/broadband lack clean free point-APIs (bulk datasets) — implement via ingestion or scope down.
-  Then **Phase 4 scoring** (user-prioritised; include distance-to-station metric). Also: T1.16 tags, X2 fixtures.
+- **Next task:** **T2.8 schools → T2.9 ONS → T2.10 council tax + broadband** (in plan order — user
+  asked not to skip ahead). NOTE: these lack clean free point-APIs (bulk datasets) — implement via a
+  small ingestion step or scope down; decide per source. Then **Phase 3 (value/comparables)** then
+  **Phase 4 (scoring; user-prioritised, include distance-to-station metric)**. Also: T1.16 tags, X2 fixtures.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -177,6 +178,11 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   EPC enricher (key-gated, address-match heuristic) + their panels. Self-review loop ran 2 cycles
   (cycle 1: Refresh now forces refetch; orchestrator test now covers transit+epc). 63 tests green,
   typecheck clean, live-verified (Clapham Junction 0.02mi, EPC skipped w/o key).
+- 2026-06-16 — T2.7 commute + destinations: TfL Journey enricher (keyless, importance-weighted
+  blend), destinations repo + CRUD routes + settings page (geocodes postcode), CommutePanel,
+  destinations threaded through EnrichContext. 70 tests green, typecheck clean; live-verified
+  (Clapham→Liverpool St 38 min). Self-review: code clean (1 effective cycle; a smoke-script
+  noclobber bug was fixed, not app code).
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 

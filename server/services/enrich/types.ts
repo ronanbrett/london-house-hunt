@@ -2,12 +2,22 @@ import type { EnrichmentSource } from '#shared/types/canonical'
 import type { FetcherResult } from '../../cache/snapshot'
 
 /** Inputs available to every enricher for a given property. */
+export interface DestinationInput {
+  id: string
+  label: string
+  lat?: number | null
+  lng?: number | null
+  mode: string
+  importance: number
+}
+
 export interface EnrichContext {
   propertyId: string
   postcode?: string | null
   lat?: number | null
   lng?: number | null
   displayAddress?: string | null
+  destinations?: DestinationInput[]
 }
 
 export interface Enricher<T = unknown> {

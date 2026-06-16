@@ -2,14 +2,22 @@ import { desc, eq } from 'drizzle-orm'
 import { type AppDatabase, useDb } from '../../db/client'
 import { type SnapshotStatus, getOrFetch } from '../../cache/snapshot'
 import { enrichmentSnapshots, properties } from '../../db/schema'
+import { listDestinations } from '../destinations/repo'
 import { epcEnricher } from './epc'
 import { floodEnricher } from './flood'
 import { policeEnricher } from './police'
 import { stationsEnricher } from './stations'
+import { commuteEnricher } from './tfl'
 import type { EnrichContext, Enricher } from './types'
 
 // Registry — add new enrichers here. Keyless sources first; key-gated ones skip when unconfigured.
-export const ENRICHERS: Enricher[] = [policeEnricher, floodEnricher, stationsEnricher, epcEnricher]
+export const ENRICHERS: Enricher[] = [
+  policeEnricher,
+  floodEnricher,
+  stationsEnricher,
+  commuteEnricher,
+  epcEnricher,
+]
 
 export type EnrichStatusMap = Record<string, SnapshotStatus | 'skipped'>
 
@@ -22,12 +30,21 @@ export async function enrichProperty(
   const [prop] = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1)
   if (!prop) throw new Error('Property not found')
 
+  const dests = await listDestinations(db)
   const ctx: EnrichContext = {
     propertyId,
     postcode: prop.postcode,
     lat: prop.lat,
     lng: prop.lng,
     displayAddress: prop.displayAddress,
+    destinations: dests.map((d) => ({
+      id: d.id,
+      label: d.label,
+      lat: d.lat,
+      lng: d.lng,
+      mode: d.mode,
+      importance: d.importance,
+    })),
   }
 
   const result: EnrichStatusMap = {}

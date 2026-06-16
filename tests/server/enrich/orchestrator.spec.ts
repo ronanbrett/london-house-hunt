@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { properties } from '../../../server/db/schema'
+import { destinations, properties } from '../../../server/db/schema'
 import { enrichProperty, getLatestEnrichment } from '../../../server/services/enrich'
 import { makeTestDb } from '../../helpers/testDb'
 
@@ -13,6 +13,7 @@ describe('enrichProperty', () => {
       .values({ source: 'manual', lat: 51.46, lng: -0.16, postcode: 'SW11 2AB' })
       .returning({ id: properties.id })
     const id = inserted[0]!.id
+    await db.insert(destinations).values({ label: 'Work', lat: 51.5, lng: -0.1, mode: 'transit', importance: 3 })
 
     vi.stubGlobal(
       'fetch',
@@ -24,7 +25,10 @@ describe('enrichProperty', () => {
         if (u.includes('environment.data.gov.uk')) {
           return new Response(JSON.stringify({ items: [{ description: 'Thames', riverOrSea: 'River Thames' }] }), { status: 200 })
         }
-        if (u.includes('api.tfl.gov.uk')) {
+        if (u.includes('/Journey/')) {
+          return new Response(JSON.stringify({ journeys: [{ duration: 25 }] }), { status: 200 })
+        }
+        if (u.includes('/StopPoint')) {
           return new Response(
             JSON.stringify({ stopPoints: [{ commonName: 'Clapham Junction Rail Station', distance: 400, modes: ['national-rail'] }] }),
             { status: 200 },
@@ -38,6 +42,7 @@ describe('enrichProperty', () => {
     expect(statuses.police).toBe('fresh')
     expect(statuses.flood).toBe('fresh')
     expect(statuses.transit).toBe('fresh')
+    expect(statuses.tfl).toBe('fresh')
     expect(statuses.epc).toBe('skipped') // no EPC key configured in tests
 
     const latest = await getLatestEnrichment(id, db)
@@ -45,6 +50,7 @@ describe('enrichProperty', () => {
     expect((latest.police?.derived as { total: number }).total).toBe(1)
     expect((latest.flood?.derived as { areaCount: number }).areaCount).toBe(1)
     expect((latest.transit?.derived as { stations: unknown[] }).stations).toHaveLength(1)
+    expect((latest.tfl?.derived as { blendedMinutes: number }).blendedMinutes).toBe(25)
   })
 
   it('skips sources when the property has no coordinates or key', async () => {
@@ -54,6 +60,7 @@ describe('enrichProperty', () => {
     expect(statuses.police).toBe('skipped')
     expect(statuses.flood).toBe('skipped')
     expect(statuses.transit).toBe('skipped')
+    expect(statuses.tfl).toBe('skipped')
     expect(statuses.epc).toBe('skipped')
   })
 })
