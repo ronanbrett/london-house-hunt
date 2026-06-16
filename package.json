@@ -31,7 +31,10 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.112",
     "@nuxt/test-utils": "^4.0.3",
+    "@testing-library/vue": "^8.1.0",
+    "@vue/test-utils": "^2.4.11",
     "drizzle-kit": "^0.31.10",
+    "happy-dom": "^20.10.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8",
     "vue-tsc": "^3.3.5"

@@ -21,15 +21,17 @@ running state, decisions, and blockers so work can resume without re-reading eve
 
 ## Current state  _(update at the end of every working session)_
 
-- **Phase:** 0 (Skeleton) — **complete**. ✅ Moving to Phase 1.
-- **Done:** T0.1–T0.6. Scaffold + deps; libsql `useDb()`; full Drizzle schema (15 tables) migrated
-  to `data/app.db`; canonical Zod types in `shared/types/canonical.ts`; dev server boots (HTTP 200).
-- **Next task:** **T1.1** — import detection (`server/services/import/detect.ts`) + shared canonical
-  mapper. Then T1.2 Rightmove parser (`window.PAGE_MODEL`).
-- **Dev server:** left running in background on :3000 (HMR). Restart if it gets stale.
-- **Env/keys:** none set yet (see `.env.example`; needed from Phase 2 onward, not for P0/P1 core).
-- **Versions of note:** `@nuxt/ui` v4.8.2, `zod` v4.4.3 (canary pin in manifest was aligned to
-  stable to satisfy @nuxt/ui's peer range), `drizzle-orm` 0.45, `vitest` 4.
+- **Phase:** 0 complete ✅. **Phase 1 in progress** — import pipeline (parsing core) done.
+- **Done:** T0.1–T0.7; T1.1, T1.2, T1.3, T1.5 (import parsers + helpers, all tested); T1.13 partial
+  (geo helpers done, backfill wiring pending). `npm test` = 29 passing across 7 files; typecheck clean.
+- **Next task:** **T1.4** (fetchPage) + **T1.6** (persist `CanonicalListing` → DB, deriving
+  sector/district + geo backfill) → then API routes **T1.7–T1.9, T1.11** → bookmarklet **T1.10** →
+  UI **T1.12, T1.14, T1.15** → notes/tags **T1.16**.
+- **Dev server:** left running in background on :3000 (HMR). Restart if stale.
+- **Testing harness:** Vitest 4; node-env unit tests + `nuxt`-env component tests both working.
+  `#shared/*` alias resolves in tests. Save real portal fixtures (X2) to harden parser tests.
+- **Env/keys:** none set yet (needed from Phase 2 onward).
+- **Versions of note:** `@nuxt/ui` v4.8.2, `zod` v4.4.3, `drizzle-orm` 0.45, `vitest` 4.
 
 ---
 
@@ -48,17 +50,49 @@ For each task `T#.#`, work through this checklist:
   money stays integer pounds; external calls go through the cache layer (from Phase 2).
 - [ ] **6. Verify** — run the relevant checks in **Verification** (typecheck + unit test + manual
   where applicable). A task is not done if typecheck or tests fail.
-- [ ] **7. Test** — add/extend a Vitest test when the task adds parsing, scoring, or value logic
-  (use fixtures from `tests/fixtures/`). UI-only tasks: verify manually in `npm run dev`.
+- [ ] **7. Test (mandatory — every feature)** — no task is done without tests. See **Testing
+  strategy** below. Minimum bar:
+  - **Server logic** (parsers, scoring, value, geo, services): Vitest unit tests with fixtures.
+  - **API routes**: a test hitting the handler (happy path + one failure/validation path).
+  - **Vue components & pages**: a Vue component test (`@nuxt/test-utils` `mountSuspended` /
+    `renderSuspended`) asserting render + key interaction/state — not just manual `npm run dev`.
+  - Cover the realistic failure/empty/missing-data path, not only the happy path.
 - [ ] **8. Record** — tick the task `[x]` in `tasks.md`; append a one-line **Progress log** entry;
   update **Current state** (Done / Next task); add any new follow-up tasks to `tasks.md`.
 - [ ] **9. Stop points** — pause for the user before: anything outward-facing (git push, PR,
   deploy), destructive DB ops, or a decision that contradicts the approved plan.
 
 ### Definition of done (every task)
-- Code typechecks; affected unit tests pass; no new console errors in `npm run dev`.
+- **Tests exist and pass for the feature** — server logic has unit tests; UI has Vue component
+  tests; API routes have a handler test. `npm test` is green. A feature without tests is not done.
+- Code typechecks; no new console errors in `npm run dev`.
 - Input/output validated with Zod where data crosses a boundary.
 - `tasks.md` checkbox ticked + Progress log entry written.
+
+---
+
+## Testing strategy  _(tests are part of every feature, not a later phase)_
+
+Harness: **Vitest 4** + **@nuxt/test-utils** + **@vue/test-utils** (+ happy-dom). Config in
+`vitest.config.ts`. Tests live in `tests/` (`tests/unit/`, `tests/components/`, `tests/server/`,
+fixtures in `tests/fixtures/`).
+
+| Layer | What to test | How |
+|---|---|---|
+| **Schemas/types** (`shared/`) | parse valid + reject invalid; defaults applied | Vitest, node env |
+| **Import parsers** (`server/services/import/`) | portal JSON/HTML fixture → expected `CanonicalListing`; malformed input degrades (no throw, returns partial/typed error) | Vitest + saved fixtures |
+| **Services** (scoring, value, geo, yield) | math/branches incl. missing-data, renormalization, edge bands | Vitest, node env, synthetic inputs |
+| **API routes** (`server/api/`) | happy path + a validation/failure path | Vitest (call handler / `@nuxt/test-utils` request helpers) |
+| **Vue components & pages** (`app/`) | renders expected content; empty/loading/error states; key user interaction emits/calls; conditional UI | `mountSuspended`/`renderSuspended`, file named `*.nuxt.spec.ts` with `// @vitest-environment nuxt` |
+
+Conventions:
+- Pure-logic tests: default `node` environment (fast). Component tests: add
+  `// @vitest-environment nuxt` at the top of the file (gives auto-imports, Nuxt UI, NuxtLink).
+- Name component/runtime tests `*.nuxt.spec.ts`; pure tests `*.spec.ts`.
+- Every feature must test at least one **non-happy** path (empty/missing/invalid).
+- Save real portal HTML + API responses under `tests/fixtures/` (task X2) so parser/enricher tests
+  are deterministic and offline.
+- Run `npm test` (CI-style, once) before marking a task done; `npm run test:watch` while iterating.
 
 ---
 
@@ -109,6 +143,11 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
 - 2026-06-16 — T0.5 done: canonical Zod schemas/types (CanonicalListing, Enrichment, Score, Verdict).
 - 2026-06-16 — T0.6 done: dev server boots (HTTP 200, dashboard renders); added `@iconify-json/lucide`.
   Phase 0 complete.
+- 2026-06-16 — T0.7 done: Vitest harness (node + nuxt envs); `@vue/test-utils`/`happy-dom`; smoke
+  tests pass. Testing made a hard per-feature requirement in docs + CLAUDE.md created.
+- 2026-06-16 — T1.1/T1.2/T1.3/T1.5 done: import parsers (detect, extract, helpers, Rightmove,
+  Zoopla, paste-text) → CanonicalListing, all Zod-validated + unit-tested (29 tests green,
+  typecheck clean). T1.13 geo helpers (normalize/derive/lookup) done; backfill wiring pending.
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 
@@ -120,6 +159,12 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
 - 2026-06-16 — **Primary use = home to live in.** Default scoring profile weights
   value/commute/location/schools/safety; investment/yield (Phase 5) is optional.
 - 2026-06-16 — `@nuxt/ui` resolved to **v4** (plan said v3). APIs used are compatible; proceed on v4.
+- 2026-06-16 — **Zoopla parser is best-effort.** `__NEXT_DATA__` layout drifts, so we deep-find the
+  listing node rather than hard-coding a path. Validate against a real saved page (X2) before
+  trusting field coverage; Rightmove's `PAGE_MODEL` is more stable. Both isolate portal quirks in
+  their own module and degrade to manual on parse failure.
+- 2026-06-16 — Both portal parsers share `map*Model`/`map*Data` so the **bookmarklet** (posts the
+  raw embedded object) and **server-fetch** (extracts it from HTML) reuse identical mapping.
 
 ## Blockers / open questions  _(clear as resolved)_
 

@@ -6,6 +6,11 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
 **Legend:** `[ ]` todo · `[~]` in progress · `[x]` done
 **Stack:** Nuxt 4 + Nitro · Nuxt UI v4 · Drizzle + libsql (SQLite) · Zod · Pinia · MapLibre · Vitest
 
+> **Testing rule (applies to every task):** ship tests with the feature — server logic → Vitest
+> unit tests; Vue components/pages → component test via `@nuxt/test-utils` (`mountSuspended`); API
+> routes → a handler test; always cover one non-happy path. `npm test` must be green before a box
+> is ticked. Details in `IMPLEMENTATION.md` → "Testing strategy".
+
 ---
 
 ## Phase 0 — Skeleton  _(foundation)_
@@ -30,20 +35,26 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
 - [x] **T0.6** Boot check — `npm run dev` serves the dashboard (HTTP 200, nav + empty state
   render). Installed `@iconify-json/lucide` for offline icons. Route warnings for
   /import,/compare,/settings are expected (pages land in Phase 1).
+- [x] **T0.7** Test harness — `vitest.config.ts` (node default + `nuxt` env opt-in via
+  `// @vitest-environment nuxt`); installed `@vue/test-utils` + `happy-dom` + `@testing-library/vue`.
+  Smoke tests: `tests/unit/canonical.spec.ts` + `tests/components/dashboard.nuxt.spec.ts`
+  (`mountSuspended`). `npm test` green (5 tests). Enforces the Testing rule above.
 
 ## Phase 1 — Import + view  _(MVP)_
 
-- [ ] **T1.1** Import detection + canonical mapper — `server/services/import/detect.ts`
-  (URL → `rightmove`|`zoopla`|`unknown`), shared mapping helpers → `CanonicalListing`.
-- [ ] **T1.2** Rightmove parser — `server/services/import/rightmove.ts`: extract
-  `window.PAGE_MODEL` from page HTML, map `propertyData` → `CanonicalListing` (Zod-validated,
-  defensive optionals). Unit test with a saved HTML fixture.
-- [ ] **T1.3** Zoopla parser — `server/services/import/zoopla.ts`: extract `__NEXT_DATA__`,
-  navigate `props.pageProps` → `CanonicalListing`. Unit test with fixture.
+- [x] **T1.1** Import detection + canonical mapper — `detect.ts` (portal + listing-id),
+  `extract.ts` (brace-matching `extractAssignedObject` + `extractNextData`), `helpers.ts`
+  (parseMoney/normalizeTenure/stripHtml/sqft), `errors.ts` (`ImportParseError`). Tested.
+- [x] **T1.2** Rightmove parser — `rightmove.ts`: `mapRightmoveModel` (shared by fetch +
+  bookmarklet) + `parseRightmoveHtml` (extracts `PAGE_MODEL`), Zod-validated, defensive. Tested
+  with synthetic fixture (real-page fixture → X2).
+- [x] **T1.3** Zoopla parser — `zoopla.ts`: `mapZooplaData` (defensive deep-find of the listing
+  node in `__NEXT_DATA__`) + `parseZooplaHtml`. Tested w/ synthetic fixture. **Best-effort —
+  needs validation against a real saved page (X2).**
 - [ ] **T1.4** Page fetcher — `server/services/import/fetchPage.ts`: GET with realistic UA,
   timeout, `p-retry`. Used only by the server-fetch import path.
-- [ ] **T1.5** Paste-text parser — `server/services/import/parseText.ts`: best-effort field
-  extraction (price, beds, baths, sqft, postcode) from pasted listing text. No network.
+- [x] **T1.5** Paste-text parser — `parseText.ts`: `parsePastedText` extracts price/beds/baths/
+  receptions/sqft(+sqm→sqft)/postcode/tenure/lease-years from pasted text. No network. Tested.
 - [ ] **T1.6** Persist helper — `server/services/import/persist.ts`: upsert a
   `CanonicalListing` (+ media, stations) into the DB, returns property id. Dedupe on source URL.
 - [ ] **T1.7** API: server-fetch import — `server/api/properties/import.post.ts` `{url}` →
@@ -59,8 +70,9 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
   `[id].delete.ts` (bundle = property + media + stations).
 - [ ] **T1.12** Import page UI — `app/pages/import.vue`: three tabs (paste URL · bookmarklet ·
   manual/paste-text form) → call the right endpoint → redirect to detail.
-- [ ] **T1.13** Geo lookup — `server/services/geo/postcode.ts` (postcodes.io → lat/lng,
-  LSOA/MSOA/LA/ward codes), backfill property geo on import; cache in `enrichment_snapshots`.
+- [~] **T1.13** Geo lookup — `server/services/geo/postcode.ts`: `normalizePostcode` +
+  `derivePostcodeParts` (district/sector) + `lookupPostcode` (postcodes.io → lat/lng + LSOA/MSOA/
+  LA/ward) DONE + tested. TODO: wire backfill into persist (T1.6) + cache in `enrichment_snapshots`.
 - [ ] **T1.14** Dashboard list — `app/pages/index.vue`: grid/table of saved properties (price,
   £/sqft, beds, key facts, status); filter/sort; empty state already present.
 - [ ] **T1.15** Property detail — `app/pages/properties/[id].vue`: facts, photo gallery,
