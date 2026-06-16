@@ -2,7 +2,9 @@ import { createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
 import * as schema from './schema'
 
-let _db: ReturnType<typeof drizzle<typeof schema>> | undefined
+export type AppDatabase = ReturnType<typeof drizzle<typeof schema>>
+
+let _db: AppDatabase | undefined
 
 /**
  * Returns the shared Drizzle/libsql client (single-user, local SQLite file).

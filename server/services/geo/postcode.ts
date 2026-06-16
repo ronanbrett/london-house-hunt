@@ -34,10 +34,12 @@ export async function lookupPostcode(postcode?: string | null): Promise<Postcode
   const norm = normalizePostcode(postcode)
   if (!norm) return null
   try {
-    const res = await $fetch<{ result?: any }>(
-      `https://api.postcodes.io/postcodes/${encodeURIComponent(norm)}`,
-    )
-    const r = res?.result
+    const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(norm)}`, {
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) return null
+    const body = (await res.json()) as { result?: any }
+    const r = body?.result
     if (!r) return null
     return {
       lat: r.latitude ?? undefined,

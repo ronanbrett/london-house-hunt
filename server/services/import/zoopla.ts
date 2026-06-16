@@ -35,14 +35,14 @@ function findListing(root: any): any | null {
 
 function toMedia(arr: unknown, kind: Media['kind']): Media[] {
   if (!Array.isArray(arr)) return []
-  return arr
-    .map((it: any) => {
-      const url = typeof it === 'string' ? it : (it?.url ?? it?.src ?? it?.original ?? it?.filename)
-      if (typeof url !== 'string') return null
-      const caption = typeof it === 'object' ? (it?.caption ?? undefined) : undefined
-      return { kind, url, caption }
-    })
-    .filter((m): m is Media => m !== null)
+  const out: Media[] = []
+  for (const raw of arr as any[]) {
+    const url = typeof raw === 'string' ? raw : (raw?.url ?? raw?.src ?? raw?.original ?? raw?.filename)
+    if (typeof url !== 'string') continue
+    const caption = raw && typeof raw === 'object' ? (raw.caption ?? undefined) : undefined
+    out.push({ kind, url, caption })
+  }
+  return out
 }
 
 function floorAreaSqft(d: any): number | undefined {

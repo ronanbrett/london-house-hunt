@@ -21,15 +21,22 @@ running state, decisions, and blockers so work can resume without re-reading eve
 
 ## Current state  _(update at the end of every working session)_
 
-- **Phase:** 0 complete ✅. **Phase 1 in progress** — import pipeline (parsing core) done.
-- **Done:** T0.1–T0.7; T1.1, T1.2, T1.3, T1.5 (import parsers + helpers, all tested); T1.13 partial
-  (geo helpers done, backfill wiring pending). `npm test` = 29 passing across 7 files; typecheck clean.
-- **Next task:** **T1.4** (fetchPage) + **T1.6** (persist `CanonicalListing` → DB, deriving
-  sector/district + geo backfill) → then API routes **T1.7–T1.9, T1.11** → bookmarklet **T1.10** →
-  UI **T1.12, T1.14, T1.15** → notes/tags **T1.16**.
-- **Dev server:** left running in background on :3000 (HMR). Restart if stale.
-- **Testing harness:** Vitest 4; node-env unit tests + `nuxt`-env component tests both working.
-  `#shared/*` alias resolves in tests. Save real portal fixtures (X2) to harden parser tests.
+- **Phase:** 0 ✅. **Phase 1 ✅ (MVP done)** — only the optional **tags** UI/endpoints (part of
+  T1.16) remain. Next up is **Phase 2** (enrichment + cache).
+- **Done:** all of P1 — three import paths (URL fetch, bookmarklet, manual/paste-text) →
+  CanonicalListing → persist (with live postcode geo-backfill); list/get/delete + notes + status
+  APIs; dashboard, import page, property-detail page (client-only MapLibre map). `npm test` = **40
+  passing across 13 files**; typecheck clean; end-to-end smoke test via curl all green.
+- **Next task:** **Phase 2 / T2.1** — `server/cache/snapshot.ts` `getOrFetch` + `ttl.ts`, then
+  enrichers (police → flood → EPC → TfL → schools → ONS → council tax → broadband). Also remaining:
+  T1.16 tags, and X2 (save real Rightmove/Zoopla fixtures to harden parser tests).
+- **Dev server:** running in background on :3000.
+- **Testing harness:** Vitest 4; node-env unit tests + `nuxt`-env component tests (`mountSuspended`,
+  `registerEndpoint`) both working. `#shared/*` resolves in tests.
+- **Gotchas learned:** (1) component auto-import names are path-prefixed — `property/StatusBadge.vue`
+  is `<PropertyStatusBadge>`. (2) Import `maplibre-gl` dynamically inside `onMounted` (its top-level
+  code throws under the test DOM / SSR). (3) Nitro can infer a complex route return as `{}` — type
+  the `useFetch` explicitly (see detail page `PropertyBundle`).
 - **Env/keys:** none set yet (needed from Phase 2 onward).
 - **Versions of note:** `@nuxt/ui` v4.8.2, `zod` v4.4.3, `drizzle-orm` 0.45, `vitest` 4.
 
@@ -148,6 +155,11 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
 - 2026-06-16 — T1.1/T1.2/T1.3/T1.5 done: import parsers (detect, extract, helpers, Rightmove,
   Zoopla, paste-text) → CanonicalListing, all Zod-validated + unit-tested (29 tests green,
   typecheck clean). T1.13 geo helpers (normalize/derive/lookup) done; backfill wiring pending.
+- 2026-06-16 — T1.4/T1.6–T1.16 done: fetchPage; persist (geo backfill + dedupe); API routes
+  (import, bookmarklet+CORS, manual, list/get/delete, notes, status, parse-text); repo service;
+  bookmarklet asset; dashboard, import, detail pages; client-only MapLibre map. 40 tests green
+  (incl. in-memory-DB persist/repo + component tests), typecheck clean, end-to-end curl smoke green.
+  Phase 1 MVP complete (tags UI deferred).
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 

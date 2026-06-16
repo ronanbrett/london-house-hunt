@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { derivePostcodeParts, normalizePostcode } from '../../../server/services/geo/postcode'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  derivePostcodeParts,
+  lookupPostcode,
+  normalizePostcode,
+} from '../../../server/services/geo/postcode'
+
+afterEach(() => vi.restoreAllMocks())
 
 describe('normalizePostcode', () => {
   it('inserts the canonical space', () => {
@@ -21,5 +27,37 @@ describe('derivePostcodeParts', () => {
   })
   it('returns empty for invalid input', () => {
     expect(derivePostcodeParts('nope')).toEqual({})
+  })
+})
+
+describe('lookupPostcode', () => {
+  it('maps a postcodes.io result', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              result: {
+                latitude: 51.4,
+                longitude: -0.1,
+                admin_district: 'Wandsworth',
+                admin_ward: 'Northcote',
+                codes: { lsoa: 'E01', msoa: 'E02' },
+              },
+            }),
+            { status: 200 },
+          ),
+      ),
+    )
+    const geo = await lookupPostcode('SW11 2AB')
+    expect(geo).toMatchObject({ lat: 51.4, lng: -0.1, adminDistrict: 'Wandsworth', lsoaCode: 'E01' })
+  })
+
+  it('returns null for an invalid postcode without calling the network', async () => {
+    const f = vi.fn()
+    vi.stubGlobal('fetch', f)
+    expect(await lookupPostcode('nope')).toBeNull()
+    expect(f).not.toHaveBeenCalled()
   })
 })

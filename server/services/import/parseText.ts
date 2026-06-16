@@ -22,36 +22,36 @@ const UK_POSTCODE = /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i
 export function parsePastedText(text: string): ParsedTextFields {
   const out: ParsedTextFields = {}
   if (!text) return out
-  const t = text.replace(new RegExp(String.fromCharCode(160), "g"), " ")
+  const t = text.replace(new RegExp(String.fromCharCode(160), 'g'), ' ')
 
-  const price = t.match(/£\s?([\d,]+(?:\.\d+)?)/)
-  if (price) out.price = parseMoney(price[1])
+  const priceM = t.match(/£\s?([\d,]+(?:\.\d+)?)/)?.[1]
+  if (priceM) out.price = parseMoney(priceM)
 
-  const beds = t.match(/(\d+)\s*(?:bed|bedroom)/i)
-  if (beds) out.beds = parseInt(beds[1], 10)
+  const bedsM = t.match(/(\d+)\s*(?:bed|bedroom)/i)?.[1]
+  if (bedsM) out.beds = parseInt(bedsM, 10)
 
-  const baths = t.match(/(\d+)\s*(?:bath|bathroom)/i)
-  if (baths) out.baths = parseInt(baths[1], 10)
+  const bathsM = t.match(/(\d+)\s*(?:bath|bathroom)/i)?.[1]
+  if (bathsM) out.baths = parseInt(bathsM, 10)
 
-  const recep = t.match(/(\d+)\s*reception/i)
-  if (recep) out.receptions = parseInt(recep[1], 10)
+  const recepM = t.match(/(\d+)\s*reception/i)?.[1]
+  if (recepM) out.receptions = parseInt(recepM, 10)
 
-  const sqft = t.match(/([\d,]+(?:\.\d+)?)\s*(?:sq\.?\s?ft|sqft|square\s?feet)/i)
-  if (sqft) {
-    out.floorAreaSqft = Math.round(parseFloat(sqft[1].replace(/,/g, '')))
+  const sqftM = t.match(/([\d,]+(?:\.\d+)?)\s*(?:sq\.?\s?ft|sqft|square\s?feet)/i)?.[1]
+  if (sqftM) {
+    out.floorAreaSqft = Math.round(parseFloat(sqftM.replace(/,/g, '')))
   } else {
-    const sqm = t.match(/([\d,]+(?:\.\d+)?)\s*(?:sq\.?\s?m|sqm|square\s?met)/i)
-    if (sqm) out.floorAreaSqft = Math.round(parseFloat(sqm[1].replace(/,/g, '')) * SQM_TO_SQFT)
+    const sqmM = t.match(/([\d,]+(?:\.\d+)?)\s*(?:sq\.?\s?m|sqm|square\s?met)/i)?.[1]
+    if (sqmM) out.floorAreaSqft = Math.round(parseFloat(sqmM.replace(/,/g, '')) * SQM_TO_SQFT)
   }
 
-  const pc = t.match(UK_POSTCODE)
-  if (pc) out.postcode = normalizePostcode(pc[0])
+  const pcM = t.match(UK_POSTCODE)?.[0]
+  if (pcM) out.postcode = normalizePostcode(pcM)
 
   const tenure = normalizeTenure(t)
   if (tenure) out.tenure = tenure
 
-  const lease = t.match(/(\d{2,3})\s*years?\s*(?:remaining|left|lease)/i)
-  if (lease) out.leaseYearsRemaining = parseInt(lease[1], 10)
+  const leaseM = t.match(/(\d{2,3})\s*years?\s*(?:remaining|left|lease)/i)?.[1]
+  if (leaseM) out.leaseYearsRemaining = parseInt(leaseM, 10)
 
   return out
 }
