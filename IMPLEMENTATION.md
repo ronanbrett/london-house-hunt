@@ -30,10 +30,13 @@ running state, decisions, and blockers so work can resume without re-reading eve
   `[id]/enrichment.get`; detail-page "Area insights" with Stations/Crime/Flood/EPC panels.
   `npm test` = **63 across 22 files**; typecheck clean; live smoke (SW11 2QP → Clapham Junction 0.02mi,
   864 crimes, 16 flood areas, epc skipped) green.
-- **Next task:** **T2.8 schools → T2.9 ONS → T2.10 council tax + broadband** (in plan order — user
-  asked not to skip ahead). NOTE: these lack clean free point-APIs (bulk datasets) — implement via a
-  small ingestion step or scope down; decide per source. Then **Phase 3 (value/comparables)** then
-  **Phase 4 (scoring; user-prioritised, include distance-to-station metric)**. Also: T1.16 tags, X2 fixtures.
+- **Remaining P2 is blocked/optional (researched):** schools (T2.8) has **no free Ofsted-by-location
+  API** (GIAS dropped Ofsted Sept 2024; paid only); broadband (T2.10b) is Ofcom bulk-only; council tax
+  (T2.10a) is **already captured from import** ✅; ONS (T2.9) is feasible via Nomis but low-value
+  (crime-rate denominator mismatch). Awaiting a steer on schools (pay / bulk-ingest / drop).
+- **Next task:** **Phase 3 — value/comparables** (T3.x: Land Registry SPARQL + HPI + EPC↔PPD join +
+  verdict), which feeds the **Phase 4 scoring** the user prioritised (include distance-to-station,
+  commute, crime, flood, EPC, £/sqft). Also outstanding: T1.16 tags, X2 real-portal fixtures.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`

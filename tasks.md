@@ -103,9 +103,17 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
   `blendCommute` importance-weighted); destinations repo + CRUD routes; `settings/destinations.vue`
   (geocodes postcode on add); CommutePanel. Destinations passed via `EnrichContext`. Tested + verified
   live (Clapham→Liverpool St = 38 min).
-- [ ] **T2.8** Schools — `enrich/schools.ts` (nearest Ofsted-rated, distance-weighted). TODO.
-- [ ] **T2.9** ONS area stats — `enrich/ons.ts` (population for crime-rate, tenure mix, area trend). TODO.
-- [ ] **T2.10** Council tax + broadband — `councilTax.ts` (VOA band), `broadband.ts` (Ofcom). TODO.
+- [ ] **T2.8 — BLOCKED (no free data)** Schools — there is **no free Ofsted-by-location API**: GIAS
+  removed Ofsted ratings from public downloads/API (Sept 2024); location+rating now only via paid
+  APIs (HomeData ~£49/mo, School Guide). Options: (a) pay for an API, (b) ingest GIAS bulk for school
+  locations/types only (no rating), (c) drop schools. _Awaiting steer; degrade gracefully meanwhile._
+- [ ] **T2.9 — optional/low-value** ONS area stats — Nomis API (free, no key) is feasible for LSOA
+  population/tenure mix. But crime-rate-per-1000 has a denominator mismatch (police data is a ~1-mile
+  circle, not one LSOA), so the headline use is weak. Area-context (tenure mix) is nice-to-have.
+- [x] **T2.10a** Council tax — **already captured from import** (Rightmove/manual → shown in the
+  facts grid). No separate enricher needed.
+- [ ] **T2.10b — BLOCKED (no free data)** Broadband — Ofcom Connected Nations is bulk-download only
+  (no free point API). Options: ingest the dataset or drop. _Awaiting steer._
 - [~] **T2.11** Enrichment panels UI — `enrichment/{EnrichmentStatus,StationsPanel,CommutePanel,
   CrimePanel,FloodPanel,EpcPanel}.vue` + detail-page "Area insights" with Refresh (force) + freshness
   badges. DONE for transit/commute/crime/flood/EPC; schools/ONS/council-tax/broadband land with theirs.
