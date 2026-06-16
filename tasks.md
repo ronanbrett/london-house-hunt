@@ -193,7 +193,8 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 - [ ] **X1** API keys: obtain free EPC (email+key) and TfL app key; MapTiler optional. Put in `.env`.
 - [ ] **X2** Test fixtures: save sample Rightmove/Zoopla HTML + recorded API responses under
   `tests/fixtures/` for deterministic unit tests.
-- [ ] **X3** README: setup, keys, how the three import paths + bookmarklet work, ToS note.
+- [x] **X3** README — setup, optional keys (+ what each unlocks), data sources, the three import
+  paths + bookmarklet, honest limitations, ToS note, project layout.
 
 ---
 
