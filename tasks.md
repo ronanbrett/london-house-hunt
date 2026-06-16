@@ -156,8 +156,10 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 - [x] **T4.5** Per-property score — `properties/[id]/score.get.ts` + `components/score/ScorePanel.vue`
   (total + confidence + per-metric bars) on the detail page (refreshes after enrich/value). Tested +
   live-verified (SW11 1LE: 51, confidence 0.85, 7 metrics).
-- [ ] **T4.6** Compare — `server/api/compare.post.ts` (cohort-aware matrix, best-in-row);
-  `app/pages/compare.vue` + `app/stores/comparison.ts`; absolute/relative toggle.
+- [x] **T4.6** Compare — `scoring/compare.ts` `compareProperties` (per-property score → metric ×
+  property matrix, best-in-row, order-preserving) + `compare.post.ts`; `stores/comparison.ts` (Pinia
+  selection) + `pages/compare.vue` (selector, table, absolute/relative toggle). Tested + live-verified
+  (freehold house 51 vs short-lease flat 31, correct per-row winners).
 
 ## Phase 5 — Investment / yield  _(optional)_
 
