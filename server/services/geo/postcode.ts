@@ -20,6 +20,24 @@ export function derivePostcodeParts(postcode?: string | null): {
   }
 }
 
+/** Nearby full postcodes (incl. the given one) via postcodes.io — used to widen comparables. */
+export async function nearestPostcodes(postcode?: string | null, limit = 10): Promise<string[]> {
+  const norm = normalizePostcode(postcode)
+  if (!norm) return []
+  try {
+    const res = await fetch(
+      `https://api.postcodes.io/postcodes/${encodeURIComponent(norm)}/nearest?limit=${limit}`,
+      { signal: AbortSignal.timeout(8000) },
+    )
+    if (!res.ok) return [norm]
+    const body = (await res.json()) as { result?: { postcode?: string }[] }
+    const list = (body.result ?? []).map((r) => r.postcode).filter((p): p is string => !!p)
+    return Array.from(new Set([norm, ...list]))
+  } catch {
+    return [norm]
+  }
+}
+
 export interface PostcodeGeo {
   lat?: number
   lng?: number

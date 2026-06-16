@@ -119,8 +119,10 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 
 ## Phase 3 — Value / comparables
 
-- [ ] **T3.1** Land Registry comps — `server/services/value/comparables.ts`: SPARQL by postcode
-  → sector → district until ≥8 sales ≤24m; filter by type/tenure.
+- [x] **T3.1** Land Registry comps — `value/landRegistry.ts`: `buildPpdQuery`/`parsePpdResults`/
+  `fetchSales`/`fetchComparables` (SPARQL `VALUES` over **nearby postcodes** from postcodes.io
+  `/nearest`, since N months). Tested + live-verified (37 real Clapham sales, £300k–800k, w/ type).
+  _Refinement: fall back to lat/lng reverse-geocode when `/nearest` misses._
 - [ ] **T3.2** HPI time-adjustment — index historical sales to today via local-authority HPI.
 - [ ] **T3.3** EPC↔PPD join — `server/services/geo/match.ts`: normalize addresses, join on
   postcode+house number, derive £/sqft comps; whole-price fallback (flagged).

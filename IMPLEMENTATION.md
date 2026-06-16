@@ -33,9 +33,11 @@ running state, decisions, and blockers so work can resume without re-reading eve
 - **Phase 2 complete (free-API scope).** User decisions: schools **dropped** (no free Ofsted data),
   ONS **dropped** (low value), council tax via import ✅, **broadband → Stretch goal S1** (wanted,
   needs Ofcom bulk ingestion; revisit after Phase 4).
-- **Next task:** **Phase 3 — value/comparables** (T3.1 Land Registry SPARQL comps → T3.2 HPI adjust →
-  T3.3 EPC↔PPD £/sqft join → T3.4 verdict + value_score → T3.5 API+UI). Feeds **Phase 4 scoring**
-  (user-prioritised: distance-to-station, commute, crime, flood, EPC, £/sqft). Also: T1.16 tags, X2 fixtures.
+- **Phase 3 in progress.** T3.1 done: `value/landRegistry.ts` fetches real sold-price comps (LR
+  SPARQL `VALUES` over postcodes.io-nearest postcodes), tested + live-verified (37 Clapham sales).
+- **Next task:** **T3.2 HPI time-adjustment** (index sales to today via local-authority HPI) →
+  **T3.3 EPC↔PPD £/sqft join** → **T3.4 verdict + value_score** → **T3.5 value API + UI** (+@unovis/vue).
+  Then **Phase 4 scoring** (user-prioritised). Also: T1.16 tags, X2 fixtures.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -185,6 +187,10 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   destinations threaded through EnrichContext. 70 tests green, typecheck clean; live-verified
   (Clapham→Liverpool St 38 min). Self-review: code clean (1 effective cycle; a smoke-script
   noclobber bug was fixed, not app code).
+- 2026-06-16 — Phase 2 closed (free-API scope). Schools/ONS dropped (user); broadband → Stretch S1;
+  council tax via import. Phase 3 started — T3.1 Land Registry comps (`value/landRegistry.ts`) via
+  SPARQL VALUES over postcodes.io-nearest postcodes. 73 tests green, typecheck clean; live-verified
+  (37 real Clapham sales). Self-review 1 cycle (bad test postcode, not a code bug).
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 
