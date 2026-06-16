@@ -1,7 +1,7 @@
 // London House-Hunt bookmarklet — reference source.
 // The draggable button on /import is the minified `javascript:` version of this, with the
 // app's base URL substituted in. It reads the listing data already loaded in your browser
-// (no extra request to the portal) and posts it to your local app.
+// (no extra request to the portal) and saves it here.
 (function () {
   var portal = null
   var data = null
@@ -9,14 +9,29 @@
     portal = 'rightmove'
     data = window.PAGE_MODEL
   } else {
-    var s = document.getElementById('__NEXT_DATA__')
-    if (s) {
+    var targeting = document.getElementById('__ZAD_TARGETING__')
+    if (targeting) {
       portal = 'zoopla'
+      var t = null
+      var j = null
       try {
-        data = JSON.parse(s.textContent)
+        t = JSON.parse(targeting.textContent)
       } catch (e) {
         /* ignore */
       }
+      var ldScripts = document.querySelectorAll('script[type="application/ld+json"]')
+      for (var i = 0; i < ldScripts.length; i++) {
+        try {
+          var ld = JSON.parse(ldScripts[i].textContent)
+          if (ld && ld['@type'] === 'RealEstateListing') {
+            j = ld
+            break
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }
+      data = { targeting: t, jsonLd: j }
     }
   }
   if (!data) {

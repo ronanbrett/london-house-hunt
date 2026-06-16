@@ -1,13 +1,12 @@
 import { type CanonicalListing, CanonicalListingSchema, type Media } from '#shared/types/canonical'
 import { normalizePostcode } from '../geo/postcode'
 import { ImportParseError } from './errors'
-import { extractNextData } from './extract'
+import { extractJsonLd, extractNextData, extractZooplaTargeting } from './extract'
 import { isoToEpoch, normalizeTenure, num, parseMoney, SQM_TO_SQFT, stripHtml } from './helpers'
 
 /**
- * Zoopla embeds listing data in `__NEXT_DATA__`. The exact path drifts between releases, so we
- * search the object graph for the listing node defensively.
- * NOTE: field coverage is best-effort and should be validated against a saved real page (task X2).
+ * Zoopla used to embed listing data in `__NEXT_DATA__`. The exact path drifts between releases,
+ * so we search the object graph for the listing node defensively.
  */
 function findListing(root: any): any | null {
   const seen = new Set<unknown>()
@@ -55,6 +54,7 @@ function floorAreaSqft(d: any): number | undefined {
   return Math.round(value)
 }
 
+/** Map legacy __NEXT_DATA__ format into a CanonicalListing. */
 export function mapZooplaData(nextData: any, sourceUrl?: string): CanonicalListing {
   const d = findListing(nextData?.props?.pageProps ?? nextData) ?? {}
   const address = d.address ?? {}
@@ -85,9 +85,58 @@ export function mapZooplaData(nextData: any, sourceUrl?: string): CanonicalListi
   })
 }
 
+/**
+ * Map the __ZAD_TARGETING__ analytics object (+ JSON-LD supplement) into a CanonicalListing.
+ * Zoopla migrated from Next.js Pages Router to App Router (RSC) circa 2026 and no longer
+ * embeds __NEXT_DATA__. The ad-targeting script and schema.org JSON-LD are the best remaining
+ * structured data sources available in the server-rendered HTML.
+ */
+export function mapZooplaTargeting(
+  targeting: Record<string, unknown>,
+  jsonLd: Record<string, unknown> | null,
+  sourceUrl?: string,
+): CanonicalListing {
+  const outcode = targeting.outcode as string | undefined
+  const incode = targeting.incode as string | undefined
+  const postcode = outcode && incode ? normalizePostcode(`${outcode} ${incode}`) : undefined
+
+  const sqft = num(Number(targeting.size_sq_feet)) || undefined
+
+  const photos: Media[] = []
+  const heroImage = jsonLd?.image as string | undefined
+  if (heroImage) photos.push({ kind: 'photo', url: heroImage })
+
+  return CanonicalListingSchema.parse({
+    source: 'zoopla',
+    sourceUrl,
+    sourceId: targeting.listing_id != null ? String(targeting.listing_id) : undefined,
+    displayAddress: (targeting.display_address as string) || undefined,
+    postcode,
+    price: parseMoney((targeting.price_actual ?? targeting.price) as string | undefined),
+    priceQualifier: (targeting.price_qualifier as string) || undefined,
+    propertyType: (targeting.property_type as string) || undefined,
+    tenure: normalizeTenure(targeting.tenure as string),
+    beds: num(Number(targeting.num_beds)) || undefined,
+    baths: num(Number(targeting.num_baths)) || undefined,
+    receptions: num(Number(targeting.num_recepts)) || undefined,
+    floorAreaSqft: sqft,
+    description: stripHtml(jsonLd?.description as string),
+    agentName: (targeting.branch_name as string) || undefined,
+    firstListedAt: isoToEpoch(jsonLd?.datePosted as string),
+    photos,
+    floorplans: [],
+    stations: [],
+  })
+}
+
 /** Parse a fetched Zoopla HTML page into a CanonicalListing. */
 export function parseZooplaHtml(html: string, sourceUrl?: string): CanonicalListing {
   const next = extractNextData(html)
-  if (!next) throw new ImportParseError('Could not find __NEXT_DATA__ in the Zoopla page')
-  return mapZooplaData(next, sourceUrl)
+  if (next) return mapZooplaData(next, sourceUrl)
+
+  const targeting = extractZooplaTargeting(html)
+  const jsonLd = extractJsonLd(html, 'RealEstateListing')
+  if (!targeting && !jsonLd)
+    throw new ImportParseError('Could not find listing data in the Zoopla page')
+  return mapZooplaTargeting(targeting ?? {}, jsonLd, sourceUrl)
 }

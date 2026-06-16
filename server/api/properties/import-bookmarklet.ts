@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { persistListing } from '../../services/import/persist'
 import { mapRightmoveModel } from '../../services/import/rightmove'
-import { mapZooplaData } from '../../services/import/zoopla'
+import { mapZooplaData, mapZooplaTargeting } from '../../services/import/zoopla'
 
 // No method suffix so this handler also answers the CORS preflight (OPTIONS) the bookmarklet
 // triggers when POSTing JSON cross-origin from rightmove.co.uk / zoopla.co.uk.
@@ -26,7 +26,16 @@ export default defineEventHandler(async (event) => {
   }
 
   const { portal, data, url } = await readValidatedBody(event, Body.parse)
-  const listing = portal === 'rightmove' ? mapRightmoveModel(data, url) : mapZooplaData(data, url)
+
+  let listing
+  if (portal === 'rightmove') {
+    listing = mapRightmoveModel(data, url)
+  } else if (data?.targeting || data?.jsonLd) {
+    listing = mapZooplaTargeting(data.targeting ?? {}, data.jsonLd ?? null, url)
+  } else {
+    listing = mapZooplaData(data, url)
+  }
+
   const id = await persistListing(listing)
   return { id }
 })

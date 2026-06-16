@@ -1,15 +1,26 @@
 import { type CanonicalListing, CanonicalListingSchema } from '#shared/types/canonical'
 import { ImportParseError } from './errors'
-import { extractAssignedObject } from './extract'
+import { devalueUnflatten, extractAssignedObject } from './extract'
 import { isoToEpoch, normalizeTenure, num, parseMoney, sqftFromRightmoveSizings, stripHtml } from './helpers'
+
+/**
+ * Decode a PAGE_MODEL that may be plain JSON or devalue-encoded.
+ * Rightmove switched to devalue (shape: `{data: "[...]", encoding: "on"}`) circa 2026.
+ */
+function decodePageModel(raw: unknown): unknown {
+  const unflattened = devalueUnflatten(raw)
+  return unflattened ?? raw
+}
 
 /**
  * Map a Rightmove `window.PAGE_MODEL` object into a CanonicalListing.
  * Used by both the server-fetch path and the bookmarklet (which posts the raw model).
+ * Accepts both the legacy plain-object format and the newer devalue-encoded format.
  * Defensive: every field is optional and missing data is simply omitted.
  */
-export function mapRightmoveModel(model: any, sourceUrl?: string): CanonicalListing {
-  const pd = model?.propertyData ?? model ?? {}
+export function mapRightmoveModel(raw: any, sourceUrl?: string): CanonicalListing {
+  const model = decodePageModel(raw)
+  const pd = (model as any)?.propertyData ?? model ?? {}
   const address = pd.address ?? {}
   const postcode = [address.outcode, address.incode].filter(Boolean).join(' ') || undefined
 

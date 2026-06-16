@@ -26,7 +26,38 @@ const model = {
   },
 }
 
-describe('mapRightmoveModel', () => {
+function toDevalue(obj: any): { data: string; encoding: string } {
+  const flat: unknown[] = []
+  const seen = new Map<unknown, number>()
+
+  function intern(value: unknown): number {
+    if (value !== null && typeof value === 'object') {
+      if (seen.has(value)) return seen.get(value)!
+      const idx = flat.length
+      seen.set(value, idx)
+      if (Array.isArray(value)) {
+        const arr = new Array(value.length)
+        flat.push(arr)
+        for (let i = 0; i < value.length; i++) arr[i] = intern(value[i])
+      } else {
+        const rec: Record<string, number> = {}
+        flat.push(rec)
+        for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+          rec[k] = intern(v)
+        }
+      }
+      return idx
+    }
+    const idx = flat.length
+    flat.push(value)
+    return idx
+  }
+
+  intern(obj)
+  return { data: JSON.stringify(flat), encoding: 'on' }
+}
+
+describe('mapRightmoveModel (legacy plain format)', () => {
   const listing = mapRightmoveModel(model, 'https://www.rightmove.co.uk/properties/123456789')
 
   it('maps the core fields', () => {
@@ -64,12 +95,46 @@ describe('mapRightmoveModel', () => {
   })
 })
 
+describe('mapRightmoveModel (devalue-encoded format)', () => {
+  const devalueModel = toDevalue(model)
+  const listing = mapRightmoveModel(devalueModel, 'https://www.rightmove.co.uk/properties/123456789')
+
+  it('decodes devalue and maps core fields identically', () => {
+    expect(listing.source).toBe('rightmove')
+    expect(listing.sourceId).toBe('123456789')
+    expect(listing.price).toBe(750000)
+    expect(listing.beds).toBe(2)
+    expect(listing.baths).toBe(1)
+    expect(listing.propertyType).toBe('Flat')
+    expect(listing.postcode).toBe('SW11 2AB')
+    expect(listing.lat).toBe(51.46)
+    expect(listing.lng).toBe(-0.16)
+  })
+
+  it('decodes nested objects (tenure, stations, media)', () => {
+    expect(listing.tenure).toBe('leasehold')
+    expect(listing.leaseYearsRemaining).toBe(95)
+    expect(listing.stations[0]).toMatchObject({ name: 'Clapham Junction', distanceMiles: 0.3 })
+    expect(listing.photos).toHaveLength(1)
+    expect(listing.agentName).toBe('Test Estates, London')
+  })
+})
+
 describe('parseRightmoveHtml', () => {
-  it('extracts PAGE_MODEL from page HTML', () => {
+  it('extracts PAGE_MODEL from page HTML (legacy format)', () => {
     const html = `<html><head><script>window.PAGE_MODEL = ${JSON.stringify(model)};</script></head><body></body></html>`
     const listing = parseRightmoveHtml(html)
     expect(listing.sourceId).toBe('123456789')
     expect(listing.price).toBe(750000)
+  })
+
+  it('extracts devalue-encoded PAGE_MODEL from page HTML', () => {
+    const encoded = toDevalue(model)
+    const html = `<html><head><script>window.PAGE_MODEL = ${JSON.stringify(encoded)};</script></head><body></body></html>`
+    const listing = parseRightmoveHtml(html)
+    expect(listing.sourceId).toBe('123456789')
+    expect(listing.price).toBe(750000)
+    expect(listing.beds).toBe(2)
   })
 
   it('throws ImportParseError when PAGE_MODEL is missing', () => {
