@@ -16,13 +16,15 @@ registerEndpoint('/api/properties', () => [
     thumbnail: null,
   },
 ])
+registerEndpoint('/api/properties/scores', () => ({ p1: { total: 82, confidence: 0.9 } }))
 
 describe('dashboard with data', () => {
-  it('renders a property card with address, price and status', async () => {
+  it('renders a property card with address, price, status and score', async () => {
     const wrapper = await mountSuspended(IndexPage)
     const text = wrapper.text()
     expect(text).toContain('1 Test Street, London')
     expect(text).toContain('£750,000')
     expect(text).toContain('shortlisted')
+    expect(text).toContain('82') // score badge
   })
 })

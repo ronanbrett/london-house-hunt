@@ -178,6 +178,9 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
 
 ## Phase 6 — Polish  _(optional)_
 
+- [x] **T6.0** Dashboard score badges + select-to-compare — `properties/scores.get.ts` +
+  `scoring/dashboard.ts scoreAllProperties`; dashboard shows a colour-coded score badge per card,
+  a compare-toggle button, and a "N selected → Compare" bar. Tested + live-verified (72 vs 21).
 - [ ] **T6.1** Export/print comparison.
 - [ ] **T6.2** Score-history charts (snapshots are append-only).
 - [ ] **T6.3** Bulk re-enrich / refresh-all.

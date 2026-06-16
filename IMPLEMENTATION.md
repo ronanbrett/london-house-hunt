@@ -38,9 +38,10 @@ running state, decisions, and blockers so work can resume without re-reading eve
 - **Phases 0–5 COMPLETE.** Import (3 ways) → enrichment (stations/commute/crime/flood/EPC) → value
   verdict → scoring + compare + weight editor → **investment/yield** (rent-in → gross/net yield +
   `investment` metric, off by default). All live-verified.
-- **Next task (optional polish — Phase 6):** dashboard score badges; export comparison; score-history
-  charts; bulk re-enrich; auth seam for hosting. Outstanding deferred: T1.16 tags, X2 real-portal
-  fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key), Stretch S1 broadband, HPI CAGR growth context.
+- **Phase 6 started.** T6.0 dashboard score badges + select-to-compare ✅ (live-verified). Remaining
+  optional polish: T6.1 export comparison, T6.2 score-history, T6.3 bulk re-enrich, T6.4 auth seam.
+  Deferred: T1.16 tags, X2 real-portal fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key),
+  Stretch S1 broadband, HPI CAGR growth context.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -213,6 +214,9 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   registry at weight 0 (buy-to-let opt-in). 114 tests green, typecheck clean; live-verified (£500k @
   £2.2k/mo → 5.3%/3.6%; investment-weighted score = 37). Self-review caught a non-awaited useFetch in
   YieldPanel (fixed → await). **Phases 0–5 complete.**
+- 2026-06-16 — T6.0 dashboard polish: `scoreAllProperties` + `/api/properties/scores`; dashboard
+  cards show colour-coded score badges + a select-to-compare toggle + a "N selected" compare bar.
+  116 tests green, typecheck clean; live-verified (scores 72 vs 21).
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 
