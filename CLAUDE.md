@@ -50,11 +50,24 @@ Progress-log line, update Current state. One task at a time.
 | Apply migration | `npm run db:migrate` |
 | Inspect DB | `npm run db:studio` |
 
-## Stop points (confirm with the user first)
+## Checkpoint routine (do this at EVERY major checkpoint)
 
-Anything outward-facing (git push, PR, deploy), destructive DB ops, or a decision that contradicts
-the approved plan. Commit/push only when asked. Git remote uses the `ronanbrett` GitHub account
-over HTTPS; commits are co-authored per the global instructions.
+A "major checkpoint" = a phase completes, or a significant task/feature is finished. At each one,
+**always** run this sequence before moving on:
+
+1. **Green bar:** `npm test` passes and `npx nuxi typecheck` is clean. Fix before continuing.
+2. **Update tracking:** tick the boxes in `tasks.md`; update `IMPLEMENTATION.md` Current state +
+   Progress log (and Decisions / Blockers if relevant).
+3. **Commit** all changes with a descriptive message + the `Co-Authored-By` trailer.
+4. **Push** to `origin` (`ronanbrett` GitHub account over HTTPS).
+
+Committing + pushing at checkpoints is durably authorized — do it without re-asking.
+
+## Stop points (still confirm with the user first)
+
+Opening a **PR**, deploying, destructive DB ops (dropping tables, deleting real data), rewriting
+published history (force-push), or any decision that contradicts the approved plan. (Routine
+checkpoint commits + pushes to this feature branch are pre-authorized per the routine above.)
 
 ## Current status (keep roughly in sync with IMPLEMENTATION.md)
 
