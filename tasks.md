@@ -93,16 +93,20 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
   category breakdown). Tested + verified live (1,954 crimes for SE1 2UP). Rate-per-1000 needs ONS (T2.9).
 - [x] **T2.5** Flood risk — `enrich/flood.ts` (EA flood-monitoring `floodAreas` within 2km, keyless;
   `deriveFlood`). Tested + verified live (15 areas near Tower Bridge).
-- [ ] **T2.6** EPC — `enrich/epc.ts` (epc.opendatacommunities.org; capture UPRN + floor area —
-  also feeds the value engine). **Needs API key** (key-gated skip when absent). TODO.
+- [x] **T2.5a** Stations (transit) — `enrich/stations.ts` (TfL StopPoint geo, keyless; nearby
+  tube/overground/rail/DLR + distance in miles; `deriveStations` cleans/dedupes/sorts). New `transit`
+  enrichment source. Tested + verified live (Clapham Junction 0.02mi). _(user-requested)_
+- [x] **T2.6** EPC — `enrich/epc.ts` (epc.opendatacommunities.org; `matchEpcRow` address heuristic →
+  rating + floor area + UPRN). **Key-gated** (skips cleanly when no key, so no false `no_match`
+  cached). Tested. Address matching refined in Phase 3 (T3.3); EPC→property backfill deferred to P3.
 - [ ] **T2.7** Commute + destinations — `enrich/tfl.ts` (TfL journey planner); `destinations` CRUD +
   `settings/destinations.vue`; importance-weighted blend. **Needs TfL key.** TODO.
 - [ ] **T2.8** Schools — `enrich/schools.ts` (nearest Ofsted-rated, distance-weighted). TODO.
 - [ ] **T2.9** ONS area stats — `enrich/ons.ts` (population for crime-rate, tenure mix, area trend). TODO.
 - [ ] **T2.10** Council tax + broadband — `councilTax.ts` (VOA band), `broadband.ts` (Ofcom). TODO.
-- [~] **T2.11** Enrichment panels UI — `enrichment/{EnrichmentStatus,CrimePanel,FloodPanel}.vue` +
-  detail-page "Area insights" section w/ Refresh + freshness badges. DONE for crime+flood;
-  remaining panels land with their enrichers.
+- [~] **T2.11** Enrichment panels UI — `enrichment/{EnrichmentStatus,StationsPanel,CrimePanel,
+  FloodPanel,EpcPanel}.vue` + detail-page "Area insights" with Refresh (force) + freshness badges.
+  DONE for transit/crime/flood/EPC; schools/ONS/council-tax/broadband panels land with their enrichers.
 
 ## Phase 3 — Value / comparables
 
@@ -117,6 +121,10 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
   (ValueVerdict, ComparablesScatter, PriceHistoryChart). Add `@unovis/vue`.
 
 ## Phase 4 — Scoring + comparison
+
+> **User-prioritised:** scoring "every property" is a core ask. Metrics must include **distance to
+> nearest station** (from the `transit` enricher) plus crime, flood, EPC, £/sqft value, commute.
+> Per-property score (T4.5) is the headline deliverable; can be brought forward once enrichment lands.
 
 - [ ] **T4.1** Metric registry — `server/services/scoring/metrics.ts`: declarative metrics
   (key, category, direction, extract, normalize strategy, defaultWeight, missingPolicy).

@@ -7,6 +7,7 @@ export const TTL_DAYS: Record<EnrichmentSource, number> = {
   police: 30, // monthly data releases
   flood: 365, // essentially static
   epc: 180, // certificates valid 10 years
+  transit: 365, // stations rarely change
   land_registry: 90, // updated monthly
   tfl: 30, // network stable
   schools: 180, // inspections infrequent

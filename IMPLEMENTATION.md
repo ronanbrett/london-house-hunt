@@ -21,16 +21,18 @@ running state, decisions, and blockers so work can resume without re-reading eve
 
 ## Current state  _(update at the end of every working session)_
 
-- **Phase:** 0 ✅, 1 ✅. **Phase 2 in progress** — cache + orchestrator + crime + flood done & live-verified.
+- **Phase:** 0 ✅, 1 ✅. **Phase 2 in progress** — cache + orchestrator + crime + flood + **stations
+  (TfL)** + **EPC (key-gated)** done & live-verified.
 - **Done (P2 so far):** `cache/snapshot.ts` getOrFetch + `ttl.ts`; `enrich/http.ts` (rateLimit +
   fetchJson); `enrich/types.ts` + `enrich/index.ts` (registry, `enrichProperty`, `getLatestEnrichment`);
-  police + flood enrichers (keyless); routes `[id]/enrich.post` + `[id]/enrichment.get`; detail-page
-  "Area insights" with Crime + Flood panels + Refresh. `npm test` = **54 across 18 files**; typecheck
-  clean; live smoke (SE1 2UP → 1954 crimes, 15 flood areas; re-run = cached) green.
-- **Next task:** **T2.6 EPC** (key-gated) → **T2.7 TfL commute + destinations** (key-gated) →
-  **T2.8 schools** → **T2.9 ONS** (also gives population for crime-rate-per-1000) → **T2.10 council
-  tax + broadband**. Each: enricher + register in `ENRICHERS` + panel + tests. Also still: T1.16 tags,
-  X2 real fixtures.
+  enrichers: **police, flood, stations(transit), epc**; routes `[id]/enrich.post` (Refresh forces) +
+  `[id]/enrichment.get`; detail-page "Area insights" with Stations/Crime/Flood/EPC panels.
+  `npm test` = **63 across 22 files**; typecheck clean; live smoke (SW11 2QP → Clapham Junction 0.02mi,
+  864 crimes, 16 flood areas, epc skipped) green.
+- **Next task:** **T2.7 TfL commute + destinations** (key-gated) → **T2.8 schools** → **T2.9 ONS**
+  (population for crime-rate-per-1000) → **T2.10 council tax + broadband**. NOTE: schools/ONS/council-
+  tax/broadband lack clean free point-APIs (bulk datasets) — implement via ingestion or scope down.
+  Then **Phase 4 scoring** (user-prioritised; include distance-to-station metric). Also: T1.16 tags, X2 fixtures.
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -171,6 +173,10 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
 - 2026-06-16 — Phase 2 core: cache (`getOrFetch`/TTL), `fetchJson`/rateLimit, enricher
   registry+orchestrator, police + flood enrichers (keyless), enrich/enrichment routes, detail-page
   Area-insights panels. 54 tests green, typecheck clean, live-verified against police.uk + EA.
+- 2026-06-16 — Phase 2 cont.: stations enricher (TfL StopPoint, keyless, new `transit` source) +
+  EPC enricher (key-gated, address-match heuristic) + their panels. Self-review loop ran 2 cycles
+  (cycle 1: Refresh now forces refetch; orchestrator test now covers transit+epc). 63 tests green,
+  typecheck clean, live-verified (Clapham Junction 0.02mi, EPC skipped w/o key).
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 
@@ -188,6 +194,11 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   their own module and degrade to manual on parse failure.
 - 2026-06-16 — Both portal parsers share `map*Model`/`map*Data` so the **bookmarklet** (posts the
   raw embedded object) and **server-fetch** (extracts it from HTML) reuse identical mapping.
+- 2026-06-16 — Key-gated enrichers read keys from `process.env.NUXT_*` (not `useRuntimeConfig`) so
+  they stay testable in plain Node and **skip via `cacheKey → null`** when unconfigured (avoids
+  caching a false `no_match` that would block the source once a key is added).
+- 2026-06-16 — Stations via TfL StopPoint (anonymous; `NUXT_TFL_APP_KEY` only raises limits) — a
+  new `transit` enrichment source, distinct from the planned `tfl` commute/journey source (T2.7).
 
 ## Blockers / open questions  _(clear as resolved)_
 

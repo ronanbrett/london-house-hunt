@@ -7,6 +7,7 @@ export interface EnrichContext {
   postcode?: string | null
   lat?: number | null
   lng?: number | null
+  displayAddress?: string | null
 }
 
 export interface Enricher<T = unknown> {

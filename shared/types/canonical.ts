@@ -70,8 +70,9 @@ export const EnrichmentSourceSchema = z.enum([
   'police',
   'flood',
   'epc',
+  'transit', // nearby tube/overground/rail/DLR stations (TfL StopPoint)
   'land_registry',
-  'tfl',
+  'tfl', // journey-time commute to user destinations
   'schools',
   'ons',
   'council_tax',

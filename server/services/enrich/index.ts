@@ -2,12 +2,14 @@ import { desc, eq } from 'drizzle-orm'
 import { type AppDatabase, useDb } from '../../db/client'
 import { type SnapshotStatus, getOrFetch } from '../../cache/snapshot'
 import { enrichmentSnapshots, properties } from '../../db/schema'
+import { epcEnricher } from './epc'
 import { floodEnricher } from './flood'
 import { policeEnricher } from './police'
+import { stationsEnricher } from './stations'
 import type { EnrichContext, Enricher } from './types'
 
 // Registry — add new enrichers here. Keyless sources first; key-gated ones skip when unconfigured.
-export const ENRICHERS: Enricher[] = [policeEnricher, floodEnricher]
+export const ENRICHERS: Enricher[] = [policeEnricher, floodEnricher, stationsEnricher, epcEnricher]
 
 export type EnrichStatusMap = Record<string, SnapshotStatus | 'skipped'>
 
@@ -25,6 +27,7 @@ export async function enrichProperty(
     postcode: prop.postcode,
     lat: prop.lat,
     lng: prop.lng,
+    displayAddress: prop.displayAddress,
   }
 
   const result: EnrichStatusMap = {}

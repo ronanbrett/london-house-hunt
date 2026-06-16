@@ -44,7 +44,7 @@ const enriching = ref(false)
 async function runEnrich() {
   enriching.value = true
   try {
-    await $fetch(`/api/properties/${id}/enrich`, { method: 'POST' })
+    await $fetch(`/api/properties/${id}/enrich?force=true`, { method: 'POST' })
     await refreshEnrichment()
   } finally {
     enriching.value = false
@@ -181,11 +181,14 @@ function formatDate(ms?: number | null) {
             </div>
           </template>
           <p class="text-xs text-muted">
-            Crime (police.uk) and flood risk (Environment Agency) — free official data, cached locally.
+            Stations (TfL), crime (police.uk), flood risk (Environment Agency) and EPC — free
+            official data, cached locally.
           </p>
         </UCard>
+        <EnrichmentStationsPanel :entry="enrichment?.transit" />
         <EnrichmentCrimePanel :entry="enrichment?.police" />
         <EnrichmentFloodPanel :entry="enrichment?.flood" />
+        <EnrichmentEpcPanel :entry="enrichment?.epc" />
 
         <!-- Stations -->
         <UCard v-if="data?.stations?.length">

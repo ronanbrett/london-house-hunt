@@ -24,6 +24,12 @@ describe('enrichProperty', () => {
         if (u.includes('environment.data.gov.uk')) {
           return new Response(JSON.stringify({ items: [{ description: 'Thames', riverOrSea: 'River Thames' }] }), { status: 200 })
         }
+        if (u.includes('api.tfl.gov.uk')) {
+          return new Response(
+            JSON.stringify({ stopPoints: [{ commonName: 'Clapham Junction Rail Station', distance: 400, modes: ['national-rail'] }] }),
+            { status: 200 },
+          )
+        }
         return new Response('null', { status: 404 })
       }),
     )
@@ -31,18 +37,23 @@ describe('enrichProperty', () => {
     const statuses = await enrichProperty(id, { db })
     expect(statuses.police).toBe('fresh')
     expect(statuses.flood).toBe('fresh')
+    expect(statuses.transit).toBe('fresh')
+    expect(statuses.epc).toBe('skipped') // no EPC key configured in tests
 
     const latest = await getLatestEnrichment(id, db)
     expect(latest.police?.status).toBe('ok')
     expect((latest.police?.derived as { total: number }).total).toBe(1)
     expect((latest.flood?.derived as { areaCount: number }).areaCount).toBe(1)
+    expect((latest.transit?.derived as { stations: unknown[] }).stations).toHaveLength(1)
   })
 
-  it('skips sources when the property has no coordinates', async () => {
+  it('skips sources when the property has no coordinates or key', async () => {
     const db = await makeTestDb()
     const inserted = await db.insert(properties).values({ source: 'manual' }).returning({ id: properties.id })
     const statuses = await enrichProperty(inserted[0]!.id, { db })
     expect(statuses.police).toBe('skipped')
     expect(statuses.flood).toBe('skipped')
+    expect(statuses.transit).toBe('skipped')
+    expect(statuses.epc).toBe('skipped')
   })
 })
