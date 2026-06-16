@@ -33,11 +33,13 @@ running state, decisions, and blockers so work can resume without re-reading eve
 - **Phase 2 complete (free-API scope).** User decisions: schools **dropped** (no free Ofsted data),
   ONS **dropped** (low value), council tax via import ✅, **broadband → Stretch goal S1** (wanted,
   needs Ofcom bulk ingestion; revisit after Phase 4).
-- **Phase 3 in progress.** T3.1 done: `value/landRegistry.ts` fetches real sold-price comps (LR
-  SPARQL `VALUES` over postcodes.io-nearest postcodes), tested + live-verified (37 Clapham sales).
-- **Next task:** **T3.2 HPI time-adjustment** (index sales to today via local-authority HPI) →
-  **T3.3 EPC↔PPD £/sqft join** → **T3.4 verdict + value_score** → **T3.5 value API + UI** (+@unovis/vue).
-  Then **Phase 4 scoring** (user-prioritised). Also: T1.16 tags, X2 fixtures.
+- **Phase 3 nearly done.** T3.1 (LR comps), T3.4 (verdict), T3.5 (value API + UI) ✅ live-verified
+  (SW11 1LE £600k → "overpriced" vs £417.5k median of 6 nearby flats). T3.2 HPI = adjust-fn done but
+  source deferred (identity). T3.3 £/sqft = deferred (needs EPC key; currently whole-price comparison).
+- **Next task:** **Phase 4 — scoring** (user-prioritised). Metric registry + normalizers + score
+  engine + profiles + per-property score + compare. Metrics from what's live: £/value (value_score),
+  commute, distance-to-nearest-station, crime, flood, EPC, tenure (leasehold cliff), beds/size.
+  Also outstanding: T1.16 tags, X2 fixtures, T3.2 HPI source, T3.3 £/sqft (post-EPC-key).
 - **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
   + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
   required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
@@ -191,6 +193,10 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   council tax via import. Phase 3 started — T3.1 Land Registry comps (`value/landRegistry.ts`) via
   SPARQL VALUES over postcodes.io-nearest postcodes. 73 tests green, typecheck clean; live-verified
   (37 real Clapham sales). Self-review 1 cycle (bad test postcode, not a code bug).
+- 2026-06-16 — Phase 3 value engine: hpi.adjustToToday (source deferred), verdict (median/IQR/bands/
+  valueScore), valueFromSales + computeValue (persists comparables), value API + ValueVerdict UI.
+  87 tests green, typecheck clean; live-verified (SW11 1LE £600k → overpriced vs £417.5k). Self-review
+  2 cycles (cycle 2: clarified UI note = whole-price, not size-adjusted). T3.3 £/sqft deferred (EPC key).
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 

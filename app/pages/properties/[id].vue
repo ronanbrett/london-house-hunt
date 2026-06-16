@@ -73,6 +73,30 @@ const facts = computed(() => {
   ]
 })
 
+interface ValueResult {
+  sampleSize: number
+  fairValue: number
+  fairValueLow: number
+  fairValueHigh: number
+  deltaPct: number | null
+  verdict: string | null
+  valueScore: number | null
+  hpiAdjusted: boolean
+  comps: { amount: number; date: string; postcode?: string; propertyType?: string }[]
+}
+const value = ref<ValueResult | null>(null)
+const valueLoading = ref(false)
+async function estimateValue() {
+  valueLoading.value = true
+  try {
+    value.value = await $fetch<ValueResult>(`/api/properties/${id}/value`)
+  } catch {
+    value.value = null
+  } finally {
+    valueLoading.value = false
+  }
+}
+
 const note = ref('')
 async function addNote() {
   if (!note.value.trim()) return
@@ -152,6 +176,24 @@ function formatDate(ms?: number | null) {
               <dd class="font-medium text-default capitalize">{{ f.value }}</dd>
             </div>
           </dl>
+        </UCard>
+
+        <!-- Value -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <span>Value</span>
+              <UButton
+                size="xs"
+                variant="outline"
+                icon="i-lucide-pound-sterling"
+                label="Estimate"
+                :loading="valueLoading"
+                @click="estimateValue"
+              />
+            </div>
+          </template>
+          <ValueVerdict :result="value" :loading="valueLoading" />
         </UCard>
 
         <!-- Description -->

@@ -123,13 +123,18 @@ tfl (commute), epc; council tax via import. Schools/ONS dropped; broadband → s
   `fetchSales`/`fetchComparables` (SPARQL `VALUES` over **nearby postcodes** from postcodes.io
   `/nearest`, since N months). Tested + live-verified (37 real Clapham sales, £300k–800k, w/ type).
   _Refinement: fall back to lat/lng reverse-geocode when `/nearest` misses._
-- [ ] **T3.2** HPI time-adjustment — index historical sales to today via local-authority HPI.
-- [ ] **T3.3** EPC↔PPD join — `server/services/geo/match.ts`: normalize addresses, join on
-  postcode+house number, derive £/sqft comps; whole-price fallback (flagged).
-- [ ] **T3.4** Verdict — `server/services/value/verdict.ts`: fair value + IQR, `deltaPct` →
-  band, augment with price-history/time-on-market; emit `value_score` + rationale.
-- [ ] **T3.5** Value API + UI — `server/api/value/[id].get.ts`; `app/components/value/`
-  (ValueVerdict, ComparablesScatter, PriceHistoryChart). Add `@unovis/vue`.
+- [~] **T3.2** HPI time-adjustment — `value/hpi.ts` `adjustToToday` (nearest-month index ratio) done
+  + tested + wired. **HPI source `fetchHpiSeries` deferred** (returns null → identity; UKHPI region-URI
+  mapping is the follow-up). Small effect over the ≤36-mo comp window.
+- [ ] **T3.3 — deferred (needs EPC key)** EPC↔PPD £/sqft join — value engine currently does
+  **whole-price** comparison (UI says so). £/sqft needs EPC floor areas (key-gated) joined to PPD by
+  address; do when EPC is configured + address matching (refine `epc.ts` matcher) is hardened.
+- [x] **T3.4** Verdict — `value/verdict.ts` (median/IQR, `verdictFromDelta` bands, `valueScore`) +
+  `value/comparables.ts` `valueFromSales` (type-filtered, HPI-aware) + `computeValue` (persists to
+  `comparables`). Tested + live-verified (SW11 1LE £600k → overpriced vs £417.5k median).
+- [x] **T3.5** Value API + UI — `properties/[id]/value.get.ts` + `components/value/ValueVerdict.vue`
+  + detail-page "Value" card with Estimate button. (Scatter/price-history charts via `@unovis/vue`
+  deferred — verdict + comps list ship now.)
 
 ## Phase 4 — Scoring + comparison
 
