@@ -56,10 +56,16 @@ A "major checkpoint" = a phase completes, or a significant task/feature is finis
 **always** run this sequence before moving on:
 
 1. **Green bar:** `npm test` passes and `npx nuxi typecheck` is clean. Fix before continuing.
-2. **Update tracking:** tick the boxes in `tasks.md`; update `IMPLEMENTATION.md` Current state +
+2. **Self-review loop (max 5 cycles):** critically review the diff you just produced and improve it.
+   Each cycle: look for correctness bugs, unhandled edge cases, missing/weak tests, duplication,
+   dead code, needless complexity (simpler/clearer approach?), convention drift, and leftover debug.
+   Apply the improvements, re-run the green bar (step 1), and review again. **Stop when a cycle finds
+   nothing material to change, or after 5 cycles.** The `/code-review` (bugs) and `/simplify`
+   (quality) skills can do a pass for you. Note in the Progress log how many cycles you ran.
+3. **Update tracking:** tick the boxes in `tasks.md`; update `IMPLEMENTATION.md` Current state +
    Progress log (and Decisions / Blockers if relevant).
-3. **Commit** all changes with a descriptive message + the `Co-Authored-By` trailer.
-4. **Push** to `origin` (`ronanbrett` GitHub account over HTTPS).
+4. **Commit** all changes with a descriptive message + the `Co-Authored-By` trailer.
+5. **Push** to `origin` (`ronanbrett` GitHub account over HTTPS).
 
 Committing + pushing at checkpoints is durably authorized — do it without re-asking.
 

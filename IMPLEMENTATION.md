@@ -72,9 +72,10 @@ For each task `T#.#`, work through this checklist:
 - [ ] **8. Record** — tick the task `[x]` in `tasks.md`; append a one-line **Progress log** entry;
   update **Current state** (Done / Next task); add any new follow-up tasks to `tasks.md`.
 - [ ] **9. Checkpoint** — at a major checkpoint (phase done / significant feature done): ensure
-  `npm test` + typecheck are green, update `tasks.md` + this file, then **commit and push** (durably
-  authorized — see CLAUDE.md "Checkpoint routine"). Still pause for the user before a PR, deploy,
-  destructive DB op, force-push, or a decision that contradicts the approved plan.
+  `npm test` + typecheck are green → run the **self-review loop (≤5 cycles)** to improve the diff →
+  update `tasks.md` + this file → **commit and push** (durably authorized — see CLAUDE.md "Checkpoint
+  routine"). Still pause for the user before a PR, deploy, destructive DB op, force-push, or a
+  decision that contradicts the approved plan.
 
 ### Definition of done (every task)
 - **Tests exist and pass for the feature** — server logic has unit tests; UI has Vue component
