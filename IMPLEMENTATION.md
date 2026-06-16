@@ -21,15 +21,20 @@ running state, decisions, and blockers so work can resume without re-reading eve
 
 ## Current state  _(update at the end of every working session)_
 
-- **Phase:** 0 ✅. **Phase 1 ✅ (MVP done)** — only the optional **tags** UI/endpoints (part of
-  T1.16) remain. Next up is **Phase 2** (enrichment + cache).
-- **Done:** all of P1 — three import paths (URL fetch, bookmarklet, manual/paste-text) →
-  CanonicalListing → persist (with live postcode geo-backfill); list/get/delete + notes + status
-  APIs; dashboard, import page, property-detail page (client-only MapLibre map). `npm test` = **40
-  passing across 13 files**; typecheck clean; end-to-end smoke test via curl all green.
-- **Next task:** **Phase 2 / T2.1** — `server/cache/snapshot.ts` `getOrFetch` + `ttl.ts`, then
-  enrichers (police → flood → EPC → TfL → schools → ONS → council tax → broadband). Also remaining:
-  T1.16 tags, and X2 (save real Rightmove/Zoopla fixtures to harden parser tests).
+- **Phase:** 0 ✅, 1 ✅. **Phase 2 in progress** — cache + orchestrator + crime + flood done & live-verified.
+- **Done (P2 so far):** `cache/snapshot.ts` getOrFetch + `ttl.ts`; `enrich/http.ts` (rateLimit +
+  fetchJson); `enrich/types.ts` + `enrich/index.ts` (registry, `enrichProperty`, `getLatestEnrichment`);
+  police + flood enrichers (keyless); routes `[id]/enrich.post` + `[id]/enrichment.get`; detail-page
+  "Area insights" with Crime + Flood panels + Refresh. `npm test` = **54 across 18 files**; typecheck
+  clean; live smoke (SE1 2UP → 1954 crimes, 15 flood areas; re-run = cached) green.
+- **Next task:** **T2.6 EPC** (key-gated) → **T2.7 TfL commute + destinations** (key-gated) →
+  **T2.8 schools** → **T2.9 ONS** (also gives population for crime-rate-per-1000) → **T2.10 council
+  tax + broadband**. Each: enricher + register in `ENRICHERS` + panel + tests. Also still: T1.16 tags,
+  X2 real fixtures.
+- **Enricher recipe (follow for each new source):** add `enrich/<src>.ts` (export a pure `derive*`
+  + an `Enricher` using `geoKey`/postcode for cacheKey, `fetchJson`, key-gated `no_match` when a
+  required key is absent) → add to `ENRICHERS` in `enrich/index.ts` → add `enrichment/<Src>Panel.vue`
+  → wire into the detail page → unit-test the `derive*` + a panel test. TTL lives in `cache/ttl.ts`.
 - **Dev server:** running in background on :3000.
 - **Testing harness:** Vitest 4; node-env unit tests + `nuxt`-env component tests (`mountSuspended`,
   `registerEndpoint`) both working. `#shared/*` resolves in tests.
@@ -162,6 +167,9 @@ Manual smoke for the MVP (Phase 1 deliverable): import the **same** listing via 
   bookmarklet asset; dashboard, import, detail pages; client-only MapLibre map. 40 tests green
   (incl. in-memory-DB persist/repo + component tests), typecheck clean, end-to-end curl smoke green.
   Phase 1 MVP complete (tags UI deferred).
+- 2026-06-16 — Phase 2 core: cache (`getOrFetch`/TTL), `fetchJson`/rateLimit, enricher
+  registry+orchestrator, police + flood enrichers (keyless), enrich/enrichment routes, detail-page
+  Area-insights panels. 54 tests green, typecheck clean, live-verified against police.uk + EA.
 
 ## Decisions  _(append; capture the "why" when diverging or choosing)_
 

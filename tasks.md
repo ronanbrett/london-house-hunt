@@ -82,24 +82,27 @@ individually shippable. Work phases top-to-bottom; within a phase, top-to-bottom
 
 ## Phase 2 — Enrichment + cache
 
-- [ ] **T2.1** Cache layer — `server/cache/snapshot.ts` `getOrFetch` (append-only snapshots,
-  TTL, limiter+retry, stale-on-error fallback) + `server/cache/ttl.ts` per-source TTLs.
-- [ ] **T2.2** HTTP utils — `server/utils/rateLimiter.ts` (token bucket per host),
-  `server/utils/httpClient.ts` (`$fetch` + `p-retry`).
-- [ ] **T2.3** Enricher interface + orchestrator — uniform `Enricher` shape;
-  `server/api/properties/[id]/enrich.post.ts` runs sources, returns per-source status map.
-- [ ] **T2.4** Crime — `server/services/enrich/police.ts` (police.uk by lat/lng; rate per 1,000
-  using ONS population; category breakdown).
-- [ ] **T2.5** Flood risk — `server/services/enrich/flood.ts` (Environment Agency).
-- [ ] **T2.6** EPC — `server/services/enrich/epc.ts` (epc.opendatacommunities.org; capture UPRN
-  + floor area — also feeds the value engine). Needs API key.
-- [ ] **T2.7** Commute + destinations — `server/services/enrich/tfl.ts` (TfL journey planner);
-  `destinations` CRUD + `app/pages/settings/destinations.vue`; importance-weighted blend.
-- [ ] **T2.8** Schools — `server/services/enrich/schools.ts` (nearest Ofsted-rated, distance-weighted).
-- [ ] **T2.9** ONS area stats — `server/services/enrich/ons.ts` (demographics, tenure mix, area trend).
-- [ ] **T2.10** Council tax + broadband — `councilTax.ts` (VOA band), `broadband.ts` (Ofcom speeds).
-- [ ] **T2.11** Enrichment panels UI — one component per source under
-  `app/components/enrichment/` with freshness/error badges on the detail page.
+- [x] **T2.1** Cache layer — `server/cache/snapshot.ts` `getOrFetch` (append-only snapshots, TTL,
+  cacheKey-aware fresh/cached, stale-on-error fallback, no_match caching) + `ttl.ts`. Tested (in-mem DB).
+- [x] **T2.2** HTTP utils — `server/services/enrich/http.ts`: `rateLimit` (per-host min-gap) +
+  `fetchJson` (timeout + `p-retry`, throws on non-2xx). Tested with mocked fetch.
+- [x] **T2.3** Enricher interface + orchestrator — `enrich/types.ts` (`Enricher`, `EnrichContext`,
+  `geoKey`); `enrich/index.ts` registry + `enrichProperty` (parallel, per-source status) +
+  `getLatestEnrichment`; routes `[id]/enrich.post.ts` & `[id]/enrichment.get.ts`. Tested.
+- [x] **T2.4** Crime — `enrich/police.ts` (police.uk by lat/lng, keyless; `deriveCrime` → total +
+  category breakdown). Tested + verified live (1,954 crimes for SE1 2UP). Rate-per-1000 needs ONS (T2.9).
+- [x] **T2.5** Flood risk — `enrich/flood.ts` (EA flood-monitoring `floodAreas` within 2km, keyless;
+  `deriveFlood`). Tested + verified live (15 areas near Tower Bridge).
+- [ ] **T2.6** EPC — `enrich/epc.ts` (epc.opendatacommunities.org; capture UPRN + floor area —
+  also feeds the value engine). **Needs API key** (key-gated skip when absent). TODO.
+- [ ] **T2.7** Commute + destinations — `enrich/tfl.ts` (TfL journey planner); `destinations` CRUD +
+  `settings/destinations.vue`; importance-weighted blend. **Needs TfL key.** TODO.
+- [ ] **T2.8** Schools — `enrich/schools.ts` (nearest Ofsted-rated, distance-weighted). TODO.
+- [ ] **T2.9** ONS area stats — `enrich/ons.ts` (population for crime-rate, tenure mix, area trend). TODO.
+- [ ] **T2.10** Council tax + broadband — `councilTax.ts` (VOA band), `broadband.ts` (Ofcom). TODO.
+- [~] **T2.11** Enrichment panels UI — `enrichment/{EnrichmentStatus,CrimePanel,FloodPanel}.vue` +
+  detail-page "Area insights" section w/ Refresh + freshness badges. DONE for crime+flood;
+  remaining panels land with their enrichers.
 
 ## Phase 3 — Value / comparables
 

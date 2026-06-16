@@ -63,6 +63,11 @@ A "major checkpoint" = a phase completes, or a significant task/feature is finis
 
 Committing + pushing at checkpoints is durably authorized — do it without re-asking.
 
+**Working mode:** execute the plan autonomously, phase by phase / task by task. Run the checkpoint
+routine at each checkpoint and continue to the next task **without pausing to ask "shall I
+continue"**. Only stop for the confirmation cases below, or a genuine blocker (e.g. a required API
+key/secret that isn't configured — implement the code to degrade gracefully and note it).
+
 ## Stop points (still confirm with the user first)
 
 Opening a **PR**, deploying, destructive DB ops (dropping tables, deleting real data), rewriting

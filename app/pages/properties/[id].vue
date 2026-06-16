@@ -35,6 +35,22 @@ const id = route.params.id as string
 
 const { data, error, refresh } = await useFetch<PropertyBundle>(`/api/properties/${id}`)
 
+interface EnrichmentEntry { status: string; derived: unknown; fetchedAt: number }
+const { data: enrichment, refresh: refreshEnrichment } = await useFetch<Record<string, EnrichmentEntry>>(
+  `/api/properties/${id}/enrichment`,
+  { default: () => ({}) },
+)
+const enriching = ref(false)
+async function runEnrich() {
+  enriching.value = true
+  try {
+    await $fetch(`/api/properties/${id}/enrich`, { method: 'POST' })
+    await refreshEnrichment()
+  } finally {
+    enriching.value = false
+  }
+}
+
 const property = computed(() => data.value?.property)
 useHead(() => ({ title: `${property.value?.displayAddress ?? 'Property'} · London House-Hunt` }))
 
@@ -148,6 +164,28 @@ function formatDate(ms?: number | null) {
       <div class="space-y-6">
         <!-- Map -->
         <PropertyMap v-if="property.lat != null && property.lng != null" :lat="property.lat" :lng="property.lng" />
+
+        <!-- Area insights (enrichment) -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <span>Area insights</span>
+              <UButton
+                size="xs"
+                variant="outline"
+                icon="i-lucide-refresh-cw"
+                :loading="enriching"
+                label="Refresh"
+                @click="runEnrich"
+              />
+            </div>
+          </template>
+          <p class="text-xs text-muted">
+            Crime (police.uk) and flood risk (Environment Agency) — free official data, cached locally.
+          </p>
+        </UCard>
+        <EnrichmentCrimePanel :entry="enrichment?.police" />
+        <EnrichmentFloodPanel :entry="enrichment?.flood" />
 
         <!-- Stations -->
         <UCard v-if="data?.stations?.length">
