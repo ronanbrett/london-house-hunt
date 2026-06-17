@@ -1,37 +1,53 @@
 <script setup lang="ts">
-const links = [
+const mainLinks = [
   { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/' },
   { label: 'Add property', icon: 'i-lucide-plus', to: '/import' },
   { label: 'Compare', icon: 'i-lucide-columns-3', to: '/compare' },
+]
+
+const settingsLinks = [
   { label: 'Destinations', icon: 'i-lucide-map-pin', to: '/settings/destinations' },
   { label: 'Weights', icon: 'i-lucide-sliders-horizontal', to: '/settings/profiles' },
 ]
 </script>
 
 <template>
-  <div class="min-h-screen bg-default text-default">
-    <header class="border-b border-default bg-default/75 backdrop-blur sticky top-0 z-10">
-      <div class="mx-auto max-w-7xl px-4 h-14 flex items-center gap-2">
-        <NuxtLink to="/" class="font-semibold text-highlighted flex items-center gap-2 mr-4">
+  <UDashboardGroup>
+    <UDashboardSidebar collapsible>
+      <template #header>
+        <NuxtLink to="/" class="flex items-center gap-2 font-semibold text-highlighted">
           <UIcon name="i-lucide-home" class="size-5 text-primary" />
           <span>London House-Hunt</span>
         </NuxtLink>
-        <nav class="flex items-center gap-1">
-          <UButton
-            v-for="link in links"
-            :key="link.to"
-            :to="link.to"
-            :icon="link.icon"
-            :label="link.label"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-          />
-        </nav>
-      </div>
-    </header>
-    <main class="mx-auto max-w-7xl px-4 py-6">
-      <slot />
-    </main>
-  </div>
+      </template>
+
+      <UNavigationMenu
+        :items="mainLinks"
+        orientation="vertical"
+        highlight
+      />
+
+      <USeparator />
+
+      <UNavigationMenu
+        :items="settingsLinks"
+        orientation="vertical"
+        highlight
+      />
+    </UDashboardSidebar>
+
+    <UDashboardPanel>
+      <template #header>
+        <UDashboardNavbar :toggle="{ class: 'lg:hidden' }">
+          <template #right>
+            <UColorModeButton />
+          </template>
+        </UDashboardNavbar>
+      </template>
+
+      <template #body>
+        <slot />
+      </template>
+    </UDashboardPanel>
+  </UDashboardGroup>
 </template>

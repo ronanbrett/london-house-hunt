@@ -70,3 +70,33 @@ export async function updateStatus(
     .returning({ id: properties.id })
   return res.length > 0
 }
+
+export type FactFields = Pick<
+  PropertyRow,
+  | 'price'
+  | 'priceQualifier'
+  | 'beds'
+  | 'baths'
+  | 'receptions'
+  | 'floorAreaSqft'
+  | 'propertyType'
+  | 'tenure'
+  | 'leaseYearsRemaining'
+  | 'serviceChargeAnnual'
+  | 'groundRentAnnual'
+  | 'councilTaxBand'
+  | 'epcCurrent'
+>
+
+export async function updateFacts(
+  id: string,
+  fields: Partial<FactFields>,
+  db: AppDatabase = useDb(),
+): Promise<boolean> {
+  const res = await db
+    .update(properties)
+    .set({ ...fields, updatedAt: Date.now() })
+    .where(eq(properties.id, id))
+    .returning({ id: properties.id })
+  return res.length > 0
+}

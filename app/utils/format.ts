@@ -8,10 +8,38 @@ export function formatGBP(pounds?: number | null): string {
   }).format(pounds)
 }
 
-/** Format £/sq ft from price + floor area, or em dash when not computable. */
-export function pricePerSqft(price?: number | null, sqft?: number | null): string {
+export type AreaUnit = 'sqft' | 'sqm'
+
+const SQFT_TO_SQM = 0.092903
+
+export function sqftToSqm(sqft: number): number {
+  return sqft * SQFT_TO_SQM
+}
+
+export function sqmToSqft(sqm: number): number {
+  return sqm / SQFT_TO_SQM
+}
+
+export function formatArea(sqft?: number | null, unit: AreaUnit = 'sqft'): string {
+  if (sqft == null) return '—'
+  if (unit === 'sqm') {
+    return `${Math.round(sqftToSqm(sqft)).toLocaleString('en-GB')} m²`
+  }
+  return `${sqft.toLocaleString('en-GB')} sq ft`
+}
+
+export function pricePerArea(price?: number | null, sqft?: number | null, unit: AreaUnit = 'sqft'): string {
   if (!price || !sqft) return '—'
+  if (unit === 'sqm') {
+    const sqm = sqftToSqm(sqft)
+    return `£${Math.round(price / sqm).toLocaleString('en-GB')}/m²`
+  }
   return `£${Math.round(price / sqft).toLocaleString('en-GB')}/sq ft`
+}
+
+/** @deprecated Use pricePerArea instead */
+export function pricePerSqft(price?: number | null, sqft?: number | null): string {
+  return pricePerArea(price, sqft, 'sqft')
 }
 
 export const STATUS_COLORS: Record<string, string> = {

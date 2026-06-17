@@ -6,6 +6,7 @@ import {
   deleteProperty,
   getProperty,
   listProperties,
+  updateFacts,
   updateStatus,
 } from '../../../server/services/properties/repo'
 import { makeTestDb } from '../../helpers/testDb'
@@ -50,5 +51,27 @@ describe('properties repo', () => {
   it('getProperty returns null for an unknown id', async () => {
     const db = await makeTestDb()
     expect(await getProperty('nope', db)).toBeNull()
+  })
+
+  it('updateFacts partially updates fields and advances updatedAt', async () => {
+    const db = await makeTestDb()
+    const id = await persistListing(base({ price: 500000, beds: 2, floorAreaSqft: 800 }), db)
+
+    const before = (await getProperty(id, db))!.property
+    expect(before.price).toBe(500000)
+    expect(before.beds).toBe(2)
+
+    expect(await updateFacts(id, { price: 550000, floorAreaSqft: 900 }, db)).toBe(true)
+
+    const after = (await getProperty(id, db))!.property
+    expect(after.price).toBe(550000)
+    expect(after.floorAreaSqft).toBe(900)
+    expect(after.beds).toBe(2)
+    expect(after.updatedAt).toBeGreaterThanOrEqual(before.updatedAt)
+  })
+
+  it('updateFacts returns false for unknown id', async () => {
+    const db = await makeTestDb()
+    expect(await updateFacts('nope', { price: 100 }, db)).toBe(false)
   })
 })

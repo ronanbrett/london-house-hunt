@@ -63,25 +63,6 @@ async function runEnrich() {
 const property = computed(() => data.value?.property)
 useHead(() => ({ title: `${property.value?.displayAddress ?? 'Property'} · London House-Hunt` }))
 
-const facts = computed(() => {
-  const p = property.value
-  if (!p) return []
-  return [
-    { label: 'Price', value: formatGBP(p.price) + (p.priceQualifier ? ` (${p.priceQualifier})` : '') },
-    { label: '£ / sq ft', value: pricePerSqft(p.price, p.floorAreaSqft) },
-    { label: 'Bedrooms', value: p.beds ?? '—' },
-    { label: 'Bathrooms', value: p.baths ?? '—' },
-    { label: 'Receptions', value: p.receptions ?? '—' },
-    { label: 'Floor area', value: p.floorAreaSqft ? `${p.floorAreaSqft.toLocaleString('en-GB')} sq ft` : '—' },
-    { label: 'Type', value: p.propertyType ?? '—' },
-    { label: 'Tenure', value: p.tenure ? p.tenure.replace(/_/g, ' ') + (p.leaseYearsRemaining ? ` · ${p.leaseYearsRemaining}y left` : '') : '—' },
-    { label: 'Service charge', value: p.serviceChargeAnnual ? `${formatGBP(p.serviceChargeAnnual)}/yr` : '—' },
-    { label: 'Ground rent', value: p.groundRentAnnual ? `${formatGBP(p.groundRentAnnual)}/yr` : '—' },
-    { label: 'Council tax', value: p.councilTaxBand ? `Band ${p.councilTaxBand}` : '—' },
-    { label: 'EPC', value: p.epcCurrent ?? '—' },
-  ]
-})
-
 interface ValueResult {
   sampleSize: number
   fairValue: number
@@ -127,6 +108,93 @@ async function remove() {
 function formatDate(ms?: number | null) {
   return ms ? new Date(ms).toLocaleDateString('en-GB') : ''
 }
+
+const editing = ref(false)
+const saving = ref(false)
+const draft = reactive({
+  price: null as number | null,
+  priceQualifier: '',
+  beds: null as number | null,
+  baths: null as number | null,
+  receptions: null as number | null,
+  floorAreaSqft: null as number | null,
+  propertyType: '',
+  tenure: null as string | null,
+  leaseYearsRemaining: null as number | null,
+  serviceChargeAnnual: null as number | null,
+  groundRentAnnual: null as number | null,
+  councilTaxBand: '',
+  epcCurrent: '',
+})
+
+function startEdit() {
+  const p = property.value
+  if (!p) return
+  Object.assign(draft, {
+    price: p.price,
+    priceQualifier: p.priceQualifier ?? '',
+    beds: p.beds,
+    baths: p.baths,
+    receptions: p.receptions,
+    floorAreaSqft: p.floorAreaSqft,
+    propertyType: p.propertyType ?? '',
+    tenure: p.tenure,
+    leaseYearsRemaining: p.leaseYearsRemaining,
+    serviceChargeAnnual: p.serviceChargeAnnual,
+    groundRentAnnual: p.groundRentAnnual,
+    councilTaxBand: p.councilTaxBand ?? '',
+    epcCurrent: p.epcCurrent ?? '',
+  })
+  editing.value = true
+}
+
+function cancelEdit() {
+  editing.value = false
+}
+
+function numOrNull(v: unknown): number | null {
+  if (v === '' || v === null || v === undefined) return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+async function saveFacts() {
+  saving.value = true
+  try {
+    await $fetch(`/api/properties/${id}/facts`, {
+      method: 'PATCH',
+      body: {
+        price: numOrNull(draft.price),
+        priceQualifier: draft.priceQualifier || null,
+        beds: numOrNull(draft.beds),
+        baths: numOrNull(draft.baths),
+        receptions: numOrNull(draft.receptions),
+        floorAreaSqft: numOrNull(draft.floorAreaSqft),
+        propertyType: draft.propertyType || null,
+        tenure: draft.tenure || null,
+        leaseYearsRemaining: numOrNull(draft.leaseYearsRemaining),
+        serviceChargeAnnual: numOrNull(draft.serviceChargeAnnual),
+        groundRentAnnual: numOrNull(draft.groundRentAnnual),
+        councilTaxBand: draft.councilTaxBand || null,
+        epcCurrent: draft.epcCurrent || null,
+      },
+    })
+    await refresh()
+    await refreshScore()
+    editing.value = false
+  } finally {
+    saving.value = false
+  }
+}
+
+const areaUnit = ref<AreaUnit>('sqft')
+function toggleAreaUnit() {
+  areaUnit.value = areaUnit.value === 'sqft' ? 'sqm' : 'sqft'
+}
+
+const draftPricePerArea = computed(() =>
+  pricePerArea(numOrNull(draft.price), numOrNull(draft.floorAreaSqft), areaUnit.value),
+)
 </script>
 
 <template>
@@ -174,6 +242,111 @@ function formatDate(ms?: number | null) {
           <ScorePanel :score="score" />
         </UCard>
 
+        <!-- Facts -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <span>Key facts</span>
+              <div class="flex items-center gap-2">
+                <template v-if="editing">
+                  <UButton size="xs" icon="i-lucide-check" label="Save" :loading="saving" @click="saveFacts" />
+                  <UButton size="xs" variant="ghost" color="neutral" label="Cancel" @click="cancelEdit" />
+                </template>
+                <UButton
+                  v-else
+                  size="xs"
+                  variant="outline"
+                  icon="i-lucide-pencil"
+                  label="Edit"
+                  @click="startEdit"
+                />
+              </div>
+            </div>
+          </template>
+
+          <dl class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div>
+              <dt class="text-xs text-muted">Price</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ formatGBP(property?.price) }}{{ property?.priceQualifier ? ` (${property.priceQualifier})` : '' }}</dd>
+              <UInput v-else v-model.number="draft.price" type="number" size="sm" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted flex items-center gap-1">
+                {{ areaUnit === 'sqft' ? '£ / sq ft' : '£ / m²' }}
+                <button class="text-primary hover:underline text-xs" @click="toggleAreaUnit">
+                  {{ areaUnit === 'sqft' ? 'm²' : 'sq ft' }}
+                </button>
+              </dt>
+              <dd class="font-medium text-default">{{ editing ? draftPricePerArea : pricePerArea(property?.price, property?.floorAreaSqft, areaUnit) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Bedrooms</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.beds ?? '—' }}</dd>
+              <UInput v-else v-model.number="draft.beds" type="number" size="sm" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Bathrooms</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.baths ?? '—' }}</dd>
+              <UInput v-else v-model.number="draft.baths" type="number" size="sm" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Receptions</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.receptions ?? '—' }}</dd>
+              <UInput v-else v-model.number="draft.receptions" type="number" size="sm" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Floor area</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ formatArea(property?.floorAreaSqft, areaUnit) }}</dd>
+              <UInput v-else v-model.number="draft.floorAreaSqft" type="number" size="sm" placeholder="sq ft" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Type</dt>
+              <dd v-if="!editing" class="font-medium text-default capitalize">{{ property?.propertyType ?? '—' }}</dd>
+              <UInput v-else v-model="draft.propertyType" size="sm" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Tenure</dt>
+              <dd v-if="!editing" class="font-medium text-default capitalize">{{ property?.tenure ? property.tenure.replace(/_/g, ' ') + (property.leaseYearsRemaining ? ` · ${property.leaseYearsRemaining}y left` : '') : '—' }}</dd>
+              <select
+                v-else
+                v-model="draft.tenure"
+                class="w-full rounded-md border border-default bg-default px-2 py-1 text-sm capitalize"
+              >
+                <option :value="null">—</option>
+                <option value="freehold">Freehold</option>
+                <option value="leasehold">Leasehold</option>
+                <option value="share_of_freehold">Share of freehold</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </div>
+            <div v-if="!editing || draft.tenure === 'leasehold'">
+              <dt class="text-xs text-muted">Lease years</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.leaseYearsRemaining ?? '—' }}</dd>
+              <UInput v-else v-model.number="draft.leaseYearsRemaining" type="number" size="sm" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Service charge</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.serviceChargeAnnual ? `${formatGBP(property.serviceChargeAnnual)}/yr` : '—' }}</dd>
+              <UInput v-else v-model.number="draft.serviceChargeAnnual" type="number" size="sm" placeholder="£/yr" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Ground rent</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.groundRentAnnual ? `${formatGBP(property.groundRentAnnual)}/yr` : '—' }}</dd>
+              <UInput v-else v-model.number="draft.groundRentAnnual" type="number" size="sm" placeholder="£/yr" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">Council tax</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.councilTaxBand ? `Band ${property.councilTaxBand}` : '—' }}</dd>
+              <UInput v-else v-model="draft.councilTaxBand" size="sm" placeholder="e.g. D" />
+            </div>
+            <div>
+              <dt class="text-xs text-muted">EPC</dt>
+              <dd v-if="!editing" class="font-medium text-default">{{ property?.epcCurrent ?? '—' }}</dd>
+              <UInput v-else v-model="draft.epcCurrent" size="sm" placeholder="e.g. C" />
+            </div>
+          </dl>
+        </UCard>
+
         <!-- Photos -->
         <div v-if="data?.photos?.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <img
@@ -184,17 +357,6 @@ function formatDate(ms?: number | null) {
             class="aspect-square object-cover rounded-md border border-default"
           >
         </div>
-
-        <!-- Facts -->
-        <UCard>
-          <template #header>Key facts</template>
-          <dl class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div v-for="f in facts" :key="f.label">
-              <dt class="text-xs text-muted">{{ f.label }}</dt>
-              <dd class="font-medium text-default capitalize">{{ f.value }}</dd>
-            </div>
-          </dl>
-        </UCard>
 
         <!-- Value -->
         <UCard>
