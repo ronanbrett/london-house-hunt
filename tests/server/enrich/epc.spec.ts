@@ -37,4 +37,19 @@ describe('deriveEpc', () => {
       inspectionDate: '2022-01-01',
     })
   })
+
+  it('handles new API camelCase field names', () => {
+    const newRow = {
+      addressLine1: 'Flat 1',
+      addressLine2: '10 High Street',
+      currentEnergyEfficiencyBand: 'B',
+      uprn: 200,
+      registrationDate: '2024-05-15',
+    }
+    const result = deriveEpc(newRow)
+    expect(result.current).toBe('B')
+    expect(result.uprn).toBe('200')
+    expect(result.address).toBe('Flat 1, 10 High Street')
+    expect(result.inspectionDate).toBe('2024-05-15')
+  })
 })

@@ -9,5 +9,5 @@ export default defineEventHandler(async (event) => {
   if (!prop) throw createError({ statusCode: 404, statusMessage: 'Property not found' })
 
   const result = await computeValue(prop, db)
-  return result ?? { sampleSize: 0, fairValue: 0, fairValueLow: 0, fairValueHigh: 0, deltaPct: null, verdict: null, valueScore: null, hpiAdjusted: false, comps: [] }
+  return result ?? { sampleSize: 0, fairValue: 0, fairValueLow: 0, fairValueHigh: 0, deltaPct: null, verdict: null, valueScore: null, hpiAdjusted: false, sizeAdjusted: false, medianPpsf: null, comps: [] }
 })

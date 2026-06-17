@@ -6,8 +6,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     // Server-only secrets. Override via NUXT_* env vars (see .env.example).
-    epcApiEmail: '', // NUXT_EPC_API_EMAIL
-    epcApiKey: '', // NUXT_EPC_API_KEY
+    epcApiToken: '', // NUXT_EPC_API_TOKEN (bearer token from get-energy-performance-data.communities.gov.uk)
     tflAppKey: '', // NUXT_TFL_APP_KEY
     dbUrl: 'file:./data/app.db', // NUXT_DB_URL
     public: {

@@ -31,11 +31,53 @@ export function adjustToToday(amount: number, saleDateISO: string, series: HpiSe
   return Math.round(amount * (nowIdx / saleIdx))
 }
 
-/**
- * Local-authority HPI series. DEFERRED: wiring the UK HPI source (region-URI mapping) is a
- * follow-up; until then this returns null and the value engine simply skips time-adjustment
- * (small effect over the ≤36-month comp window). `adjustToToday` is ready for when it lands.
- */
+const ENDPOINT = 'https://landregistry.data.gov.uk/landregistry/query'
+
+const HPI_QUERY = `PREFIX ukhpi: <http://landregistry.data.gov.uk/def/ukhpi/>
+SELECT ?date ?index WHERE {
+  ?obs ukhpi:refRegion <http://landregistry.data.gov.uk/id/region/london> ;
+       ukhpi:refPeriodStart ?date ;
+       ukhpi:housePriceIndex ?index .
+}
+ORDER BY ?date`
+
+let hpiCache: { series: HpiSeries; fetchedAt: number } | null = null
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+
 export async function fetchHpiSeries(_localAuthority?: string | null): Promise<HpiSeries | null> {
-  return null
+  if (hpiCache && Date.now() - hpiCache.fetchedAt < CACHE_TTL_MS) {
+    return hpiCache.series
+  }
+
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        Accept: 'application/sparql-results+json',
+      },
+      body: new URLSearchParams({ query: HPI_QUERY }).toString(),
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) return null
+
+    const json = (await res.json()) as { results?: { bindings?: any[] } }
+    const bindings = json?.results?.bindings
+    if (!Array.isArray(bindings) || !bindings.length) return null
+
+    const series: HpiSeries = {}
+    for (const b of bindings) {
+      const date = b?.date?.value
+      const index = Number(b?.index?.value)
+      if (date && Number.isFinite(index)) {
+        series[String(date).slice(0, 7)] = index
+      }
+    }
+    if (Object.keys(series).length === 0) return null
+
+    hpiCache = { series, fetchedAt: Date.now() }
+    return series
+  } catch {
+    return null
+  }
 }

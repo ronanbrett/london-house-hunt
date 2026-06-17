@@ -34,6 +34,7 @@ describe('valueFromSales', () => {
     expect(r!.verdict).toBe('overpriced') // (600-525)/525 = +14%
     expect(r!.valueScore).toBeLessThan(40)
     expect(r!.hpiAdjusted).toBe(false)
+    expect(r!.sizeAdjusted).toBe(false)
   })
   it('works without an asking price (no verdict)', () => {
     const r = valueFromSales(flats, {})
@@ -43,5 +44,31 @@ describe('valueFromSales', () => {
   })
   it('returns null with no sales', () => {
     expect(valueFromSales([], {})).toBeNull()
+  })
+  it('size-adjusts when subject and comps have floor areas', () => {
+    const salesWithArea = [
+      { amount: 500000, date: '2025-01-01', propertyType: 'flat-maisonette', floorAreaSqft: 500 },
+      { amount: 600000, date: '2025-02-01', propertyType: 'flat-maisonette', floorAreaSqft: 600 },
+      { amount: 550000, date: '2025-03-01', propertyType: 'flat-maisonette', floorAreaSqft: 550 },
+      { amount: 520000, date: '2025-04-01', propertyType: 'flat-maisonette', floorAreaSqft: 520 },
+      { amount: 580000, date: '2025-05-01', propertyType: 'flat-maisonette', floorAreaSqft: 580 },
+    ]
+    const r = valueFromSales(salesWithArea, { askingPrice: 700000, floorAreaSqft: 700 })
+    expect(r).not.toBeNull()
+    expect(r!.sizeAdjusted).toBe(true)
+    expect(r!.medianPpsf).toBeGreaterThan(0)
+    expect(r!.fairValue).toBe(Math.round(r!.medianPpsf! * 700))
+  })
+  it('falls back to whole price when not enough comps have area', () => {
+    const salesFewArea = [
+      { amount: 500000, date: '2025-01-01', floorAreaSqft: 500 },
+      { amount: 510000, date: '2025-02-01' },
+      { amount: 520000, date: '2025-03-01' },
+      { amount: 530000, date: '2025-04-01' },
+      { amount: 540000, date: '2025-05-01' },
+    ]
+    const r = valueFromSales(salesFewArea, { floorAreaSqft: 600 })
+    expect(r).not.toBeNull()
+    expect(r!.sizeAdjusted).toBe(false)
   })
 })

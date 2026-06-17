@@ -72,7 +72,9 @@ interface ValueResult {
   verdict: string | null
   valueScore: number | null
   hpiAdjusted: boolean
-  comps: { amount: number; date: string; postcode?: string; propertyType?: string }[]
+  sizeAdjusted: boolean
+  medianPpsf: number | null
+  comps: { amount: number; date: string; postcode?: string; propertyType?: string; address?: string }[]
 }
 const value = ref<ValueResult | null>(null)
 const valueLoading = ref(false)
@@ -420,17 +422,6 @@ const draftPricePerArea = computed(() =>
         <EnrichmentCrimePanel :entry="enrichment?.police" />
         <EnrichmentFloodPanel :entry="enrichment?.flood" />
         <EnrichmentEpcPanel :entry="enrichment?.epc" />
-
-        <!-- Stations -->
-        <UCard v-if="data?.stations?.length">
-          <template #header>Nearest stations</template>
-          <ul class="text-sm space-y-1">
-            <li v-for="st in data.stations" :key="st.id" class="flex justify-between">
-              <span>{{ st.name }}</span>
-              <span class="text-muted">{{ st.distanceMiles != null ? `${st.distanceMiles} mi` : '' }}</span>
-            </li>
-          </ul>
-        </UCard>
 
         <!-- Notes -->
         <UCard>
